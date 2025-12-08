@@ -1,0 +1,1375 @@
+[
+  {
+    "id": "game-of-the-year",
+    "name": "Game of the Year",
+    "nominees": [
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "./tga_files/Square_-_Clair_Obscur_Expedition_33.webp",
+        "winner": false
+      },
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      },
+      {
+        "id": "donkey-kong-bananza",
+        "name": "Donkey Kong Bananza",
+        "developer": "Nintendo",
+        "link": "https://thegameawards.fandom.com/wiki/Donkey_Kong_Bananza",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/7a/Square_-_Donkey_Kong_Bananza.jpg/revision/latest?cb=20251117175012",
+        "winner": false
+      },
+      {
+        "id": "hades-ii",
+        "name": "Hades II",
+        "developer": "Supergiant Games",
+        "link": "https://thegameawards.fandom.com/wiki/Hades_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/74/Square_-_Hades_II.jpg/revision/latest?cb=20251109174413",
+        "winner": false
+      },
+      {
+        "id": "hollow-knight--silksong",
+        "name": "Hollow Knight: Silksong",
+        "developer": "Team Cherry",
+        "link": "https://thegameawards.fandom.com/wiki/Hollow_Knight:_Silksong",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d8/Square_-_Hollow_Knight_Silksong.jpg/revision/latest?cb=20251117175040",
+        "winner": false
+      },
+      {
+        "id": "kingdom-come--deliverance-ii",
+        "name": "Kingdom Come: Deliverance II",
+        "developer": "Warhorse Studios / Deep Silver",
+        "link": "https://thegameawards.fandom.com/wiki/Kingdom_Come:_Deliverance_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/44/Square_-_Kingdom_Come_Deliverance_II.jpg/revision/latest?cb=20251117175051",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-game-direction",
+    "name": "Best Game Direction",
+    "nominees": [
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      },
+      {
+        "id": "ghost-of-y-tei",
+        "name": "Ghost of Yōtei",
+        "developer": "Sucker Punch Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Ghost_of_Y%C5%8Dtei",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "hades-ii",
+        "name": "Hades II",
+        "developer": "Supergiant Games",
+        "link": "https://thegameawards.fandom.com/wiki/Hades_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/74/Square_-_Hades_II.jpg/revision/latest?cb=20251109174413",
+        "winner": false
+      },
+      {
+        "id": "split-fiction",
+        "name": "Split Fiction",
+        "developer": "Hazelight Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Split_Fiction",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/de/Square_-_Split_Fiction.jpg/revision/latest?cb=20251117175129",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-performance",
+    "name": "Best Performance",
+    "nominees": [
+      {
+        "id": "ben-starr",
+        "name": "Ben Starr",
+        "developer": "Verso — Clair Obscur: Expedition 33",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "charlie-cox",
+        "name": "Charlie Cox",
+        "developer": "Gustave — Clair Obscur: Expedition 33",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "erika-ishii",
+        "name": "Erika Ishii",
+        "developer": "Atsu — Ghost of Yōtei",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "jennifer-english",
+        "name": "Jennifer English",
+        "developer": "Maelle — Clair Obscur: Expedition 33",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "konatsu-kato",
+        "name": "Konatsu Kato",
+        "developer": "Hinako Shimizu — Silent Hill f",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/ed/Square_-_Silent_Hill_f.jpg/revision/latest?cb=20251117172410",
+        "winner": false
+      },
+      {
+        "id": "troy-baker",
+        "name": "Troy Baker",
+        "developer": "Indiana Jones — Indiana Jones and the Great Circle",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/c/c9/Square_-_Indiana_Jones_and_the_Great_Circle.jpg/revision/latest?cb=20251117172417",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-ongoing-game",
+    "name": "Best Ongoing Game",
+    "nominees": [
+      {
+        "id": "final-fantasy-xiv",
+        "name": "Final Fantasy XIV",
+        "developer": "Square Enix",
+        "link": "https://thegameawards.fandom.com/wiki/Final_Fantasy_XIV",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/26/Square_-_Final_Fantasy_XIV.jpg/revision/latest?cb=20251104150649",
+        "winner": false
+      },
+      {
+        "id": "fortnite",
+        "name": "Fortnite",
+        "developer": "Epic Games",
+        "link": "https://thegameawards.fandom.com/wiki/Fortnite",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/02/Square_-_Fortnite.jpg/revision/latest?cb=20251023104005",
+        "winner": false
+      },
+      {
+        "id": "helldivers-2",
+        "name": "Helldivers 2",
+        "developer": "Arrowhead Game Studios / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Helldivers_2",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/21/Square_-_Helldivers_2.jpg/revision/latest?cb=20251015095822",
+        "winner": false
+      },
+      {
+        "id": "marvel-rivals",
+        "name": "Marvel Rivals",
+        "developer": "NetEase Games",
+        "link": "https://thegameawards.fandom.com/wiki/Marvel_Rivals",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/1/10/Square_-_Marvel_Rivals.jpg/revision/latest?cb=20251121122650",
+        "winner": false
+      },
+      {
+        "id": "no-man-s-sky",
+        "name": "No Man's Sky",
+        "developer": "Hello Games",
+        "link": "https://thegameawards.fandom.com/wiki/No_Man%27s_Sky",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/1/12/Square_-_No_Man%27s_Sky.jpg/revision/latest?cb=20251023104233",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-mobile-game",
+    "name": "Best Mobile Game",
+    "nominees": [
+      {
+        "id": "destiny--rising",
+        "name": "Destiny: Rising",
+        "developer": "NetEase Games",
+        "link": "https://thegameawards.fandom.com/wiki/Destiny:_Rising",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/c/c8/Square_-_Destiny_Rising.jpg/revision/latest?cb=20251121124613",
+        "winner": false
+      },
+      {
+        "id": "persona-5--the-phantom-x",
+        "name": "Persona 5: The Phantom X",
+        "developer": "Black Wings Game Studio / Atlus / Sega",
+        "link": "https://thegameawards.fandom.com/wiki/Persona_5:_The_Phantom_X",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/bd/Square_-_Persona_5_The_Phantom_X.jpg/revision/latest?cb=20251121124828",
+        "winner": false
+      },
+      {
+        "id": "sonic-rumble",
+        "name": "Sonic Rumble",
+        "developer": "Rovio Entertainment, Sonic Team / Sega",
+        "link": "https://thegameawards.fandom.com/wiki/Sonic_Rumble",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/06/Square_-_Sonic_Rumble.jpg/revision/latest?cb=20251121124941",
+        "winner": false
+      },
+      {
+        "id": "umamusume--pretty-derby",
+        "name": "Umamusume: Pretty Derby",
+        "developer": "Cygames",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/50/Square_-_Umamusume_Pretty_Derby.jpg/revision/latest?cb=20251121125102",
+        "winner": false
+      },
+      {
+        "id": "wuthering-waves",
+        "name": "Wuthering Waves",
+        "developer": "Kuro Games",
+        "link": "https://thegameawards.fandom.com/wiki/Wuthering_Waves",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/4f/Square_-_Wuthering_Waves.jpg/revision/latest?cb=20251023104620",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-art-direction",
+    "name": "Best Art Direction",
+    "nominees": [
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      },
+      {
+        "id": "ghost-of-y-tei",
+        "name": "Ghost of Yōtei",
+        "developer": "Sucker Punch Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Ghost_of_Y%C5%8Dtei",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "hades-ii",
+        "name": "Hades II",
+        "developer": "Supergiant Games",
+        "link": "https://thegameawards.fandom.com/wiki/Hades_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/74/Square_-_Hades_II.jpg/revision/latest?cb=20251109174413",
+        "winner": false
+      },
+      {
+        "id": "hollow-knight--silksong",
+        "name": "Hollow Knight: Silksong",
+        "developer": "Team Cherry",
+        "link": "https://thegameawards.fandom.com/wiki/Hollow_Knight:_Silksong",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d8/Square_-_Hollow_Knight_Silksong.jpg/revision/latest?cb=20251117175040",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-score-and-music",
+    "name": "Best Score and Music",
+    "nominees": [
+      {
+        "id": "hollow-knight--silksong",
+        "name": "Hollow Knight: Silksong",
+        "developer": "Team Cherry",
+        "link": "https://thegameawards.fandom.com/wiki/Hollow_Knight:_Silksong",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d8/Square_-_Hollow_Knight_Silksong.jpg/revision/latest?cb=20251117175040",
+        "winner": false
+      },
+      {
+        "id": "hades-ii",
+        "name": "Hades II",
+        "developer": "Supergiant Games",
+        "link": "https://thegameawards.fandom.com/wiki/Hades_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/74/Square_-_Hades_II.jpg/revision/latest?cb=20251109174413",
+        "winner": false
+      },
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "ghost-of-y-tei",
+        "name": "Ghost of Yōtei",
+        "developer": "Sucker Punch Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Ghost_of_Y%C5%8Dtei",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-audio-design",
+    "name": "Best Audio Design",
+    "nominees": [
+      {
+        "id": "battlefield-6",
+        "name": "Battlefield 6",
+        "developer": "Battlefield Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Battlefield_6",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2a/Square_-_Battlefield_6.jpg/revision/latest?cb=20251121125222",
+        "winner": false
+      },
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      },
+      {
+        "id": "ghost-of-y-tei",
+        "name": "Ghost of Yōtei",
+        "developer": "Sucker Punch Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Ghost_of_Y%C5%8Dtei",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "silent-hill-f",
+        "name": "Silent Hill f",
+        "developer": "NeoBards Entertainment / Konami",
+        "link": "https://thegameawards.fandom.com/wiki/Silent_Hill_f",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/ed/Square_-_Silent_Hill_f.jpg/revision/latest?cb=20251117172410",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-adaptation",
+    "name": "Best Adaptation",
+    "nominees": [
+      {
+        "id": "a-minecraft-movie",
+        "name": "A Minecraft Movie",
+        "developer": "Feature film — based on Minecraft",
+        "link": "https://thegameawards.fandom.com/wiki/A_Minecraft_Movie",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/02/Square_-_A_Minecraft_Movie.jpg/revision/latest?cb=20251121125551",
+        "winner": false
+      },
+      {
+        "id": "devil-may-cry",
+        "name": "Devil May Cry",
+        "developer": "Animated series — based on Devil May Cry",
+        "link": "https://thegameawards.fandom.com/wiki/Devil_May_Cry",
+        "winner": false
+      },
+      {
+        "id": "splinter-cell--deathwatch",
+        "name": "Splinter Cell: Deathwatch",
+        "developer": "Animated series — based on Tom Clancy's Splinter Cell",
+        "link": "https://thegameawards.fandom.com/wiki/Splinter_Cell:_Deathwatch",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/6/66/Square_-_Splinter_Cell_Deathwatch.jpg/revision/latest?cb=20251121130057",
+        "winner": false
+      },
+      {
+        "id": "the-last-of-us--season-2-",
+        "name": "The Last of Us (Season 2)",
+        "developer": "Television series — based on The Last of Us",
+        "link": "https://thegameawards.fandom.com/wiki/The_Last_of_Us_(Season_2)",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2a/Square_-_The_Last_of_Us_%28Season_2%29.jpg/revision/latest?cb=20251121130311",
+        "winner": false
+      },
+      {
+        "id": "until-dawn",
+        "name": "Until Dawn",
+        "developer": "Feature film — based on Until Dawn",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/00/Square_-_Until_Dawn.jpg/revision/latest?cb=20251121130422",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-narrative",
+    "name": "Best Narrative",
+    "nominees": [
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      },
+      {
+        "id": "ghost-of-y-tei",
+        "name": "Ghost of Yōtei",
+        "developer": "Sucker Punch Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Ghost_of_Y%C5%8Dtei",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "kingdom-come--deliverance-ii",
+        "name": "Kingdom Come: Deliverance II",
+        "developer": "Warhorse Studios / Deep Silver",
+        "link": "https://thegameawards.fandom.com/wiki/Kingdom_Come:_Deliverance_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/44/Square_-_Kingdom_Come_Deliverance_II.jpg/revision/latest?cb=20251117175051",
+        "winner": false
+      },
+      {
+        "id": "silent-hill-f",
+        "name": "Silent Hill f",
+        "developer": "NeoBards Entertainment / Konami",
+        "link": "https://thegameawards.fandom.com/wiki/Silent_Hill_f",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/ed/Square_-_Silent_Hill_f.jpg/revision/latest?cb=20251117172410",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-community-support",
+    "name": "Best Community Support",
+    "nominees": [
+      {
+        "id": "baldur-s-gate-3",
+        "name": "Baldur's Gate 3",
+        "developer": "Larian Studios",
+        "link": "https://thegameawards.fandom.com/wiki/Baldur%27s_Gate_3",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/1/1f/Square_-_Baldur%27s_Gate_3.jpg/revision/latest?cb=20251023104213",
+        "winner": false
+      },
+      {
+        "id": "final-fantasy-xiv",
+        "name": "Final Fantasy XIV",
+        "developer": "Square Enix",
+        "link": "https://thegameawards.fandom.com/wiki/Final_Fantasy_XIV",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/26/Square_-_Final_Fantasy_XIV.jpg/revision/latest?cb=20251104150649",
+        "winner": false
+      },
+      {
+        "id": "fortnite",
+        "name": "Fortnite",
+        "developer": "Epic Games",
+        "link": "https://thegameawards.fandom.com/wiki/Fortnite",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/02/Square_-_Fortnite.jpg/revision/latest?cb=20251023104005",
+        "winner": false
+      },
+      {
+        "id": "helldivers-2",
+        "name": "Helldivers 2",
+        "developer": "Arrowhead Game Studios / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Helldivers_2",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/21/Square_-_Helldivers_2.jpg/revision/latest?cb=20251015095822",
+        "winner": false
+      },
+      {
+        "id": "no-man-s-sky",
+        "name": "No Man's Sky",
+        "developer": "Hello Games",
+        "link": "https://thegameawards.fandom.com/wiki/No_Man%27s_Sky",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/1/12/Square_-_No_Man%27s_Sky.jpg/revision/latest?cb=20251023104233",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "games-for-impact",
+    "name": "Games for Impact",
+    "nominees": [
+      {
+        "id": "consume-me",
+        "name": "Consume Me",
+        "developer": "Jenny Jiao Hsia & AP Thomson / Hexacutable",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2e/Square_-_Consume_Me.jpg/revision/latest?cb=20251121152250",
+        "winner": false
+      },
+      {
+        "id": "despelote",
+        "name": "Despelote",
+        "developer": "Julián Cordero, Sebastián Valbuena / Panic",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e6/Square_-_Despelote.jpg/revision/latest?cb=20251121152311",
+        "winner": false
+      },
+      {
+        "id": "lost-records--bloom---rage",
+        "name": "Lost Records: Bloom & Rage",
+        "developer": "Don't Nod Montréal / Don't Nod",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/04/Square_-_Lost_Records_Bloom_%26_Rage.jpg/revision/latest?cb=20251121152406",
+        "winner": false
+      },
+      {
+        "id": "south-of-midnight",
+        "name": "South of Midnight",
+        "developer": "Compulsion Games / Xbox Game Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/53/Square_-_South_of_Midnight.jpg/revision/latest?cb=20251121152515",
+        "winner": false
+      },
+      {
+        "id": "wanderstop",
+        "name": "Wanderstop",
+        "developer": "Ivy Road / Annapurna Interactive",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/fb/Square_-_Wanderstop.jpg/revision/latest?cb=20251121152617",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-multiplayer-game",
+    "name": "Best Multiplayer Game",
+    "nominees": [
+      {
+        "id": "arc-raiders",
+        "name": "ARC Raiders",
+        "developer": "Embark Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b1/Square_-_ARC_Raiders.jpg/revision/latest?cb=20251117174843",
+        "winner": false
+      },
+      {
+        "id": "battlefield-6",
+        "name": "Battlefield 6",
+        "developer": "Battlefield Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Battlefield_6",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2a/Square_-_Battlefield_6.jpg/revision/latest?cb=20251121125222",
+        "winner": false
+      },
+      {
+        "id": "elden-ring-nightreign",
+        "name": "Elden Ring Nightreign",
+        "developer": "FromSoftware / Bandai Namco Entertainment",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/02/Square_-_Elden_Ring_Nightreign.jpg/revision/latest?cb=20251121152852",
+        "winner": false
+      },
+      {
+        "id": "peak",
+        "name": "Peak",
+        "developer": "Aggro Crab / Landfall",
+        "link": "https://thegameawards.fandom.com/wiki/Peak",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/7d/Square_-_Peak.jpg/revision/latest?cb=20251121153006",
+        "winner": false
+      },
+      {
+        "id": "split-fiction",
+        "name": "Split Fiction",
+        "developer": "Hazelight Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Split_Fiction",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/de/Square_-_Split_Fiction.jpg/revision/latest?cb=20251117175129",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-independent-game",
+    "name": "Best Independent Game",
+    "nominees": [
+      {
+        "id": "absolum",
+        "name": "Absolum",
+        "developer": "Guard Crush Games, Supamonks / Dotemu",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b6/Square_-_Absolum.jpg/revision/latest?cb=20251121153113",
+        "winner": false
+      },
+      {
+        "id": "ball-x-pit",
+        "name": "Ball x Pit",
+        "developer": "Kenny Sun / Devolver Digital",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e9/Square_-_Ball_x_Pit.jpg/revision/latest?cb=20251121153339",
+        "winner": false
+      },
+      {
+        "id": "blue-prince",
+        "name": "Blue Prince",
+        "developer": "Dogubomb / Raw Fury",
+        "link": "https://thegameawards.fandom.com/wiki/Blue_Prince",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2a/Square_-_Blue_Prince.jpg/revision/latest?cb=20251117174929",
+        "winner": false
+      },
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "hades-ii",
+        "name": "Hades II",
+        "developer": "Supergiant Games",
+        "link": "https://thegameawards.fandom.com/wiki/Hades_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/74/Square_-_Hades_II.jpg/revision/latest?cb=20251109174413",
+        "winner": false
+      },
+      {
+        "id": "hollow-knight--silksong",
+        "name": "Hollow Knight: Silksong",
+        "developer": "Team Cherry",
+        "link": "https://thegameawards.fandom.com/wiki/Hollow_Knight:_Silksong",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d8/Square_-_Hollow_Knight_Silksong.jpg/revision/latest?cb=20251117175040",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-debut-indie-game",
+    "name": "Best Debut Indie Game",
+    "nominees": [
+      {
+        "id": "blue-prince",
+        "name": "Blue Prince",
+        "developer": "Dogubomb / Raw Fury",
+        "link": "https://thegameawards.fandom.com/wiki/Blue_Prince",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2a/Square_-_Blue_Prince.jpg/revision/latest?cb=20251117174929",
+        "winner": false
+      },
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "despelote",
+        "name": "Despelote",
+        "developer": "Julián Cordero, Sebastián Valbuena / Panic",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e6/Square_-_Despelote.jpg/revision/latest?cb=20251121152311",
+        "winner": false
+      },
+      {
+        "id": "dispatch",
+        "name": "Dispatch",
+        "developer": "AdHoc Studio",
+        "link": "https://thegameawards.fandom.com/wiki/Dispatch",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/f7/Square_-_Dispatch.jpg/revision/latest?cb=20251121153535",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-vr---ar-game",
+    "name": "Best VR / AR Game",
+    "nominees": [
+      {
+        "id": "alien--rogue-incursion",
+        "name": "Alien: Rogue Incursion",
+        "developer": "Survios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d7/Square_-_Alien_Rogue_Incursion.jpg/revision/latest?cb=20251121155432",
+        "winner": false
+      },
+      {
+        "id": "arken-age",
+        "name": "Arken Age",
+        "developer": "VitruviusVR",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b9/Square_-_Arken_Age.jpg/revision/latest?cb=20251121162645",
+        "winner": false
+      },
+      {
+        "id": "ghost-town",
+        "name": "Ghost Town",
+        "developer": "Fireproof Games",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/6/61/Square_-_Ghost_Town.jpg/revision/latest?cb=20251121154935",
+        "winner": false
+      },
+      {
+        "id": "marvel-s-deadpool-vr",
+        "name": "Marvel's Deadpool VR",
+        "developer": "Twisted Pixel Games / Oculus Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/3/3e/Square_-_Marvel%27s_Deadpool_VR.jpg/revision/latest?cb=20251121162541",
+        "winner": false
+      },
+      {
+        "id": "the-midnight-walk",
+        "name": "The Midnight Walk",
+        "developer": "MoonHood / Fast Travel Games",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/7b/Square_-_The_Midnight_Walk.jpg/revision/latest?cb=20251121155629",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "most-anticipated-game",
+    "name": "Most Anticipated Game",
+    "nominees": [
+      {
+        "id": "007--first-light",
+        "name": "007: First Light",
+        "developer": "IO Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/007:_First_Light",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b2/Square_-_007_First_Light.jpg/revision/latest?cb=20251121155047",
+        "winner": false
+      },
+      {
+        "id": "grand-theft-auto-vi",
+        "name": "Grand Theft Auto VI",
+        "developer": "Rockstar Games",
+        "link": "https://thegameawards.fandom.com/wiki/Grand_Theft_Auto_VI",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2b/Square_-_Grand_Theft_Auto_VI.jpg/revision/latest?cb=20251027143957",
+        "winner": false
+      },
+      {
+        "id": "marvel-s-wolverine",
+        "name": "Marvel's Wolverine",
+        "developer": "Insomniac Games / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Marvel%27s_Wolverine",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/c/c3/Square_-_Marvel%27s_Wolverine.jpg/revision/latest?cb=20251121155151",
+        "winner": false
+      },
+      {
+        "id": "resident-evil-requiem",
+        "name": "Resident Evil Requiem",
+        "developer": "Capcom",
+        "link": "https://thegameawards.fandom.com/wiki/Resident_Evil_Requiem",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/dc/Square_-_Resident_Evil_Requiem.jpg/revision/latest?cb=20251121155301",
+        "winner": false
+      },
+      {
+        "id": "the-witcher-iv",
+        "name": "The Witcher IV",
+        "developer": "CD Projekt Red",
+        "link": "https://thegameawards.fandom.com/wiki/The_Witcher_IV",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/4b/Square_-_The_Witcher_IV.jpg/revision/latest?cb=20251120155445",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-action---adventure-game",
+    "name": "Best Action / Adventure Game",
+    "nominees": [
+      {
+        "id": "death-stranding-2--on-the-beach",
+        "name": "Death Stranding 2: On the Beach",
+        "developer": "Kojima Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Death_Stranding_2:_On_the_Beach",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/ff/Square_-_Death_Stranding_2_On_the_Beach.jpg/revision/latest?cb=20251027144006",
+        "winner": false
+      },
+      {
+        "id": "ghost-of-y-tei",
+        "name": "Ghost of Yōtei",
+        "developer": "Sucker Punch Productions / Sony Interactive Entertainment",
+        "link": "https://thegameawards.fandom.com/wiki/Ghost_of_Y%C5%8Dtei",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d9/Square_-_Ghost_of_Y%C5%8Dtei.jpg/revision/latest?cb=20251027144013",
+        "winner": false
+      },
+      {
+        "id": "hollow-knight--silksong",
+        "name": "Hollow Knight: Silksong",
+        "developer": "Team Cherry",
+        "link": "https://thegameawards.fandom.com/wiki/Hollow_Knight:_Silksong",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d8/Square_-_Hollow_Knight_Silksong.jpg/revision/latest?cb=20251117175040",
+        "winner": false
+      },
+      {
+        "id": "indiana-jones-and-the-great-circle",
+        "name": "Indiana Jones and the Great Circle",
+        "developer": "MachineGames / Bethesda Softworks",
+        "link": "https://thegameawards.fandom.com/wiki/Indiana_Jones_and_the_Great_Circle",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/c/c9/Square_-_Indiana_Jones_and_the_Great_Circle.jpg/revision/latest?cb=20251117172417",
+        "winner": false
+      },
+      {
+        "id": "split-fiction",
+        "name": "Split Fiction",
+        "developer": "Hazelight Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Split_Fiction",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/de/Square_-_Split_Fiction.jpg/revision/latest?cb=20251117175129",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-role-playing-game",
+    "name": "Best Role Playing Game",
+    "nominees": [
+      {
+        "id": "avowed",
+        "name": "Avowed",
+        "developer": "Obsidian Entertainment / Xbox Game Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2e/Square_-_Avowed.jpg/revision/latest?cb=20251121153908",
+        "winner": false
+      },
+      {
+        "id": "clair-obscur--expedition-33",
+        "name": "Clair Obscur: Expedition 33",
+        "developer": "Sandfall Interactive / Kepler Interactive",
+        "link": "https://thegameawards.fandom.com/wiki/Clair_Obscur:_Expedition_33",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e4/Square_-_Clair_Obscur_Expedition_33.jpg/revision/latest?cb=20251117172404",
+        "winner": false
+      },
+      {
+        "id": "kingdom-come--deliverance-ii",
+        "name": "Kingdom Come: Deliverance II",
+        "developer": "Warhorse Studios / Deep Silver",
+        "link": "https://thegameawards.fandom.com/wiki/Kingdom_Come:_Deliverance_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/44/Square_-_Kingdom_Come_Deliverance_II.jpg/revision/latest?cb=20251117175051",
+        "winner": false
+      },
+      {
+        "id": "monster-hunter-wilds",
+        "name": "Monster Hunter Wilds",
+        "developer": "Capcom",
+        "link": "https://thegameawards.fandom.com/wiki/Monster_Hunter_Wilds",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b9/Square_-_Monster_Hunter_Wilds.jpg/revision/latest?cb=20251027144028",
+        "winner": false
+      },
+      {
+        "id": "the-outer-worlds-2",
+        "name": "The Outer Worlds 2",
+        "developer": "Obsidian Entertainment / Xbox Game Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b2/Square_-_The_Outer_Worlds_2.jpg/revision/latest?cb=20251121154008",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-fighting-game",
+    "name": "Best Fighting Game",
+    "nominees": [
+      {
+        "id": "2xko",
+        "name": "2XKO",
+        "developer": "Riot Games",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/8/8e/Square_-_2XKO.jpg/revision/latest?cb=20251121155753",
+        "winner": false
+      },
+      {
+        "id": "capcom-fighting-collection-2",
+        "name": "Capcom Fighting Collection 2",
+        "developer": "Capcom",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/9/9c/Square_-_Capcom_Fighting_Collection_2.jpg/revision/latest?cb=20251121162414",
+        "winner": false
+      },
+      {
+        "id": "fatal-fury--city-of-the-wolves",
+        "name": "Fatal Fury: City of the Wolves",
+        "developer": "SNK",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b3/Square_-_Fatal_Fury_City_of_the_Wolves.jpg/revision/latest?cb=20251121154500",
+        "winner": false
+      },
+      {
+        "id": "mortal-kombat--legacy-kollection",
+        "name": "Mortal Kombat: Legacy Kollection",
+        "developer": "Digital Eclipse / Atari",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/52/Square_-_Mortal_Kombat_Legacy_Kollection.jpg/revision/latest?cb=20251121162420",
+        "winner": false
+      },
+      {
+        "id": "virtua-fighter-5-r-e-v-o--world-stage",
+        "name": "Virtua Fighter 5 R.E.V.O. World Stage",
+        "developer": "Ryu Ga Gotoku Studio / Sega",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/f9/Square_-_Virtua_Fighter_5_R.E.V.O._World_Stage.jpg/revision/latest?cb=20251121155950",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-action-game",
+    "name": "Best Action Game",
+    "nominees": [
+      {
+        "id": "battlefield-6",
+        "name": "Battlefield 6",
+        "developer": "Battlefield Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Battlefield_6",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2a/Square_-_Battlefield_6.jpg/revision/latest?cb=20251121125222",
+        "winner": false
+      },
+      {
+        "id": "doom--the-dark-ages",
+        "name": "Doom: The Dark Ages",
+        "developer": "id Software / Bethesda Softworks",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/f8/Square_-_Doom_The_Dark_Ages.jpg/revision/latest?cb=20251117175029",
+        "winner": false
+      },
+      {
+        "id": "hades-ii",
+        "name": "Hades II",
+        "developer": "Supergiant Games",
+        "link": "https://thegameawards.fandom.com/wiki/Hades_II",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/74/Square_-_Hades_II.jpg/revision/latest?cb=20251109174413",
+        "winner": false
+      },
+      {
+        "id": "ninja-gaiden-4",
+        "name": "Ninja Gaiden 4",
+        "developer": "PlatinumGames, Team Ninja / Xbox Game Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/e/e7/Square_-_Ninja_Gaiden_4.jpg/revision/latest?cb=20251117175107",
+        "winner": false
+      },
+      {
+        "id": "shinobi--art-of-vengeance",
+        "name": "Shinobi: Art of Vengeance",
+        "developer": "Lizardcube / Sega",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/42/Square_-_Shinobi_Art_of_Vengeance.jpg/revision/latest?cb=20251121153731",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "innovation-in-accessibility",
+    "name": "Innovation in Accessibility",
+    "nominees": [
+      {
+        "id": "assassin-s-creed-shadows",
+        "name": "Assassin's Creed Shadows",
+        "developer": "Ubisoft",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/0/00/Square_-_Assassin%27s_Creed_Shadows.jpg/revision/latest?cb=20251117174901",
+        "winner": false
+      },
+      {
+        "id": "atomfall",
+        "name": "Atomfall",
+        "developer": "Rebellion Developments",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/9/99/Square_-_Atomfall.jpg/revision/latest?cb=20251121160915",
+        "winner": false
+      },
+      {
+        "id": "doom--the-dark-ages",
+        "name": "Doom: The Dark Ages",
+        "developer": "id Software / Bethesda Softworks",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/f8/Square_-_Doom_The_Dark_Ages.jpg/revision/latest?cb=20251117175029",
+        "winner": false
+      },
+      {
+        "id": "ea-sports-fc-26",
+        "name": "EA Sports FC 26",
+        "developer": "EA Vancouver, EA Romania / EA Sports",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2b/Square_-_EA_Sports_FC_26.jpg/revision/latest?cb=20251121160659",
+        "winner": false
+      },
+      {
+        "id": "south-of-midnight",
+        "name": "South of Midnight",
+        "developer": "Compulsion Games / Xbox Game Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/53/Square_-_South_of_Midnight.jpg/revision/latest?cb=20251121152515",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-family-game",
+    "name": "Best Family Game",
+    "nominees": [
+      {
+        "id": "donkey-kong-bananza",
+        "name": "Donkey Kong Bananza",
+        "developer": "Nintendo",
+        "link": "https://thegameawards.fandom.com/wiki/Donkey_Kong_Bananza",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/7/7a/Square_-_Donkey_Kong_Bananza.jpg/revision/latest?cb=20251117175012",
+        "winner": false
+      },
+      {
+        "id": "lego-party-",
+        "name": "Lego Party!",
+        "developer": "SMG Studio / Fictions",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/d6/Square_-_Lego_Party%21.jpg/revision/latest?cb=20251121160538",
+        "winner": false
+      },
+      {
+        "id": "lego-voyagers",
+        "name": "Lego Voyagers",
+        "developer": "Light Brick Studio / Annapurna Interactive",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/5a/Square_-_Lego_Voyagers.jpg/revision/latest?cb=20251121160125",
+        "winner": false
+      },
+      {
+        "id": "mario-kart-world",
+        "name": "Mario Kart World",
+        "developer": "Nintendo EPD / Nintendo",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/54/Square_-_Mario_Kart_World.jpg/revision/latest?cb=20251121154243",
+        "winner": false
+      },
+      {
+        "id": "sonic-racing--crossworlds",
+        "name": "Sonic Racing: CrossWorlds",
+        "developer": "Sumo Digital / Sega",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/48/Square_-_Sonic_Racing_CrossWorlds.jpg/revision/latest?cb=20251121160333",
+        "winner": false
+      },
+      {
+        "id": "split-fiction",
+        "name": "Split Fiction",
+        "developer": "Hazelight Studios / Electronic Arts",
+        "link": "https://thegameawards.fandom.com/wiki/Split_Fiction",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/de/Square_-_Split_Fiction.jpg/revision/latest?cb=20251117175129",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-sim---strategy-game",
+    "name": "Best Sim / Strategy Game",
+    "nominees": [
+      {
+        "id": "the-alters",
+        "name": "The Alters",
+        "developer": "11 Bit Studios",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/d/de/Square_-_The_Alters.jpg/revision/latest?cb=20251121160429",
+        "winner": false
+      },
+      {
+        "id": "final-fantasy-tactics--the-ivalice-chronicles",
+        "name": "Final Fantasy Tactics: The Ivalice Chronicles",
+        "developer": "Square Enix",
+        "link": "https://thegameawards.fandom.com/wiki/Final_Fantasy_Tactics:_The_Ivalice_Chronicles",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/8/8a/Square_-_Final_Fantasy_Tactics_The_Ivalice_Chronicles.jpg/revision/latest?cb=20251121161341",
+        "winner": false
+      },
+      {
+        "id": "jurassic-world-evolution-3",
+        "name": "Jurassic World Evolution 3",
+        "developer": "Frontier Developments",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/3/35/Square_-_Jurassic_World_Evolution_3.jpg/revision/latest?cb=20251121162116",
+        "winner": false
+      },
+      {
+        "id": "civilization-vii",
+        "name": "Civilization VII",
+        "developer": "Firaxis Games / 2K",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/c/ce/Square_-_Civilization_VII.jpg/revision/latest?cb=20251117174953",
+        "winner": false
+      },
+      {
+        "id": "tempest-rising",
+        "name": "Tempest Rising",
+        "developer": "Slipgate Ironworks / 3D Realms",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/b/b2/Square_-_Tempest_Rising.jpg/revision/latest?cb=20251121162131",
+        "winner": false
+      },
+      {
+        "id": "two-point-museum",
+        "name": "Two Point Museum",
+        "developer": "Two Point Studios / Sega",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/25/Square_-_Two_Point_Museum.jpg/revision/latest?cb=20251121162144",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-sports---racing-game",
+    "name": "Best Sports / Racing Game",
+    "nominees": [
+      {
+        "id": "ea-sports-fc-26",
+        "name": "EA Sports FC 26",
+        "developer": "EA Vancouver, EA Romania / EA Sports",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/2/2b/Square_-_EA_Sports_FC_26.jpg/revision/latest?cb=20251121160659",
+        "winner": false
+      },
+      {
+        "id": "f1-25",
+        "name": "F1 25",
+        "developer": "Codemasters / EA Sports",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/3/39/Square_-_F1_25.jpg/revision/latest?cb=20251121161038",
+        "winner": false
+      },
+      {
+        "id": "mario-kart-world",
+        "name": "Mario Kart World",
+        "developer": "Nintendo",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/5/54/Square_-_Mario_Kart_World.jpg/revision/latest?cb=20251121154243",
+        "winner": false
+      },
+      {
+        "id": "rematch",
+        "name": "Rematch",
+        "developer": "Nacon Studio Milan / Nacon",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/3/33/Square_-_Rematch.jpg/revision/latest?cb=20251121161146",
+        "winner": false
+      },
+      {
+        "id": "sonic-racing--crossworlds",
+        "name": "Sonic Racing: CrossWorlds",
+        "developer": "Sumo Digital / Sega",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/48/Square_-_Sonic_Racing_CrossWorlds.jpg/revision/latest?cb=20251121160333",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-esports-game",
+    "name": "Best Esports Game",
+    "nominees": [
+      {
+        "id": "counter-strike-2",
+        "name": "Counter-Strike 2",
+        "developer": "Valve",
+        "link": null,
+        "image": "https://static.wikia.nocookie.net/gameawards/images/4/42/Square_-_Counter-Strike_2.jpg/revision/latest?cb=20251027144440",
+        "winner": false
+      },
+      {
+        "id": "dota-2",
+        "name": "Dota 2",
+        "developer": "Valve",
+        "link": "https://thegameawards.fandom.com/wiki/Dota_2",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/f/f8/Square_-_Dota_2.jpg/revision/latest?cb=20251027144428",
+        "winner": false
+      },
+      {
+        "id": "league-of-legends",
+        "name": "League of Legends",
+        "developer": "Riot Games",
+        "link": "https://thegameawards.fandom.com/wiki/League_of_Legends",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/a/a6/Square_-_League_of_Legends.jpg/revision/latest?cb=20251027144422",
+        "winner": false
+      },
+      {
+        "id": "mobile-legends--bang-bang",
+        "name": "Mobile Legends: Bang Bang",
+        "developer": "Moonton",
+        "link": "https://thegameawards.fandom.com/wiki/Mobile_Legends:_Bang_Bang",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/6/6a/Square_-_Mobile_Legends_Bang_Bang.jpg/revision/latest?cb=20251027144447",
+        "winner": false
+      },
+      {
+        "id": "valorant",
+        "name": "Valorant",
+        "developer": "Riot Games",
+        "link": "https://thegameawards.fandom.com/wiki/Valorant",
+        "image": "https://static.wikia.nocookie.net/gameawards/images/6/6c/Square_-_Valorant.jpg/revision/latest?cb=20251027144434",
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-esports-athlete",
+    "name": "Best Esports Athlete",
+    "nominees": [
+      {
+        "id": "brawk",
+        "name": "brawk",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "chovy",
+        "name": "Chovy",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "f0rsaken",
+        "name": "f0rsakeN",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "kakeru",
+        "name": "Kakeru",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "menard",
+        "name": "MenaRD",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "zywoo",
+        "name": "ZywOo",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "best-esports-team",
+    "name": "Best Esports Team",
+    "nominees": [
+      {
+        "id": "gen-g--league-of-legends-",
+        "name": "Gen.G (League of Legends)",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "nrg--valorant-",
+        "name": "NRG (Valorant)",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "team-falcons--dota-2-",
+        "name": "Team Falcons (Dota 2)",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "team-liquid-ph--mobile-legends--bang-bang-",
+        "name": "Team Liquid PH (Mobile Legends: Bang Bang)",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "team-vitality--counter-strike-2-",
+        "name": "Team Vitality (Counter-Strike 2)",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      }
+    ]
+  },
+  {
+    "id": "content-creator-of-the-year",
+    "name": "Content Creator of the Year",
+    "nominees": [
+      {
+        "id": "caedrel",
+        "name": "Caedrel",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "kai-cenat",
+        "name": "Kai Cenat",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "moistcr1tikal",
+        "name": "MoistCr1TiKaL",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "sakura-miko",
+        "name": "Sakura Miko",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      },
+      {
+        "id": "the-burnt-peanut",
+        "name": "The Burnt Peanut",
+        "developer": null,
+        "link": null,
+        "image": null,
+        "winner": false
+      }
+    ]
+  }
+]
