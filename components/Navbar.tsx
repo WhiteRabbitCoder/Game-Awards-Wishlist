@@ -25,9 +25,9 @@ export default function Navbar() {
 
             <div className="flex items-center gap-3">
                 {/* Botón Configuración */}
-                <Link 
-                    href="/settings" 
-                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors border border-gray-700 text-gray-300 hover:text-white group" 
+                <Link
+                    href="/settings"
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors border border-gray-700 text-gray-300 hover:text-white group"
                     title="Configuración"
                 >
                     <Settings size={20} className="group-hover:rotate-90 transition-transform duration-500" />
