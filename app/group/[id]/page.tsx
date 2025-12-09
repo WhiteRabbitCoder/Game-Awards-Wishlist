@@ -192,33 +192,34 @@ export default function GroupPage() {
                         )}
                     </div>
 
-                    {/* PROGRESO DEL USUARIO */}
+                    {/* PROGRESO DEL USUARIO (REDiseñado) */}
                     {currentUserProfile && (
-                        <div className="bg-deep/50 border border-white/10 rounded-lg p-4 mb-6">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-bold text-gray-300">Tu Progreso</span>
-                                <span className="text-lg font-black text-primary">{completionPercentage}%</span>
+                        <div className="bg-surface border border-white/10 rounded-xl p-4 flex items-center gap-4 mt-6">
+                            <Trophy className="text-primary flex-shrink-0" size={24} />
+                            <div className="flex-1">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-bold text-gray-300">Tu Progreso en el Grupo</span>
+                                    <span className="text-sm font-bold text-primary">{currentUserProfile.votesCount || 0}/{totalCategories}</span>
+                                </div>
+                                <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700">
+                                    <div
+                                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-full transition-all duration-500 shadow-lg shadow-primary/50"
+                                        style={{ width: `${completionPercentage}%` }}
+                                    />
+                                </div>
                             </div>
-                            <div className="w-full bg-deep rounded-full h-2 overflow-hidden border border-white/10">
-                                <div
-                                    className="bg-primary h-full transition-all duration-500"
-                                    style={{ width: `${completionPercentage}%` }}
-                                />
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">
-                                {currentUserProfile.votesCount || 0} de {totalCategories} categorías
-                            </p>
+                            <span className="text-2xl font-black text-primary">{completionPercentage}%</span>
                         </div>
                     )}
 
                     {/* BOTONES DE ACCIÓN */}
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3 mt-6">
                         <Link
                             href={`/vote?groupId=${groupId}`}
                             className="flex-1 min-w-[180px] bg-primary hover:bg-primary-light text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all"
                         >
                             <Edit size={20} />
-                            Editar Predicciones
+                            Editar Predicciones en el Grupo
                         </Link>
 
                         <button

@@ -9,92 +9,120 @@ export default function Navbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
 
-    const isActive = (path: string) => pathname === path ? "text-cyber-neon drop-shadow-[0_0_5px_rgba(255,204,0,0.5)]" : "text-gray-400 hover:text-white";
+    const isActive = (path: string) => pathname === path ? "text-primary drop-shadow-[0_0_8px_rgba(234,179,8,0.6)] scale-110" : "text-gray-500 hover:text-white";
 
     return (
-        <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-deep/90 backdrop-blur-sm transition-all duration-300">
-            <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+        <>
+            {/* --- BARRA SUPERIOR (TOP NAVBAR) --- */}
+            <header className="fixed top-0 w-full z-40 border-b border-white/5 bg-deep/90 backdrop-blur-md transition-all duration-300 h-16 md:h-20 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+                <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
 
-                {/* IZQUIERDA: LOGO SALVAJE */}
-                <Link href="/" className="flex items-center gap-2 group relative">
-                    {/* Imagen sin bordes, flotando libre */}
-                    <div className="relative w-14 h-14 md:w-16 md:h-16 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
-                        <img
-                            src="https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png"
-                            alt="Logo"
-                            className="w-full h-full object-contain drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)]"
-                        />
-                    </div>
-
-                    {/* TEXTO HÍBRIDO */}
-                    <div className="hidden md:flex flex-col justify-center">
-                        {/* Parte Grunge: Color óxido, fuente de pintura, sombra sucia */}
-                        <span className="font-brush text-2xl text-retro-accent leading-none -rotate-2 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)] group-hover:text-white transition-colors">
-                            WISHLIST
-                        </span>
-                        {/* Parte Digital: Pequeña, técnica, neón */}
-                        <span className="text-[10px] font-digital text-gray-500 tracking-[0.4em] ml-1 group-hover:text-cyber-neon transition-colors">
-                            AWARDS_2025
-                        </span>
-                    </div>
-                </Link>
-
-                {/* CENTRO: NAVEGACIÓN (Píldora Flotante) */}
-                {user && (
-                    <nav className="hidden md:flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full border border-white/5 backdrop-blur-md shadow-lg">
-                        <Link href="/" className={`px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all ${pathname === "/" ? "bg-white/10 text-white shadow-inner" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                            <Home size={14} /> Inicio
-                        </Link>
-                        <Link href="/vote" className={`px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all ${pathname === "/vote" ? "bg-cyber-neon/10 text-cyber-neon shadow-[0_0_10px_rgba(255,204,0,0.2)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                            <Trophy size={14} /> Votar
-                        </Link>
-                        <Link href="/#grupos" className={`px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all ${pathname.includes("/group") ? "bg-primary/20 text-primary-light" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                            <Users size={14} /> Grupos
-                        </Link>
-                    </nav>
-                )}
-
-                {/* DERECHA: PERFIL */}
-                {user ? (
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-3 pl-3 pr-1 py-1 bg-black/40 border border-white/5 rounded-l-full rounded-r-full hover:border-white/20 transition-colors">
-                            <div className="text-right hidden sm:block">
-                                <p className="text-[9px] text-retro-accent uppercase font-digital tracking-widest leading-none mb-1">Player_01</p>
-                                <p className="text-sm font-bold text-white leading-none truncate max-w-[100px]">
-                                    {user.displayName || "Gamer"}
-                                </p>
-                            </div>
-                            <div className="w-9 h-9 rounded-full bg-gray-800 overflow-hidden border-2 border-gray-700 group-hover:border-retro-accent transition-colors">
-                                {user.photoURL ? (
-                                    <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-xs font-bold text-gray-400">
-                                        {user.displayName?.[0] || "G"}
-                                    </div>
-                                )}
-                            </div>
+                   {/* IZQUIERDA: LOGO GOLD & GRUNGE FINAL */}
+                    <Link href="/" className="flex items-center gap-2 md:gap-3 group relative z-50 shrink-0">
+                        <div className="relative w-9 h-9 md:w-14 md:h-14 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 flex-shrink-0">
+                            <img
+                                src="https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png"
+                                alt="Logo"
+                                className="w-full h-full object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]"
+                            />
                         </div>
 
-                        <div className="flex items-center border-l border-white/10 pl-4 gap-2">
-                            <Link href="/settings" className="text-gray-500 hover:text-white transition-colors"><Settings size={18} /></Link>
-                            <button onClick={logout} className="text-gray-500 hover:text-red-500 transition-colors"><LogOut size={18} /></button>
+                        <div className="flex flex-col justify-center">
+                            {/* TÍTULO: Forzamos la fuente en 'style' y mantenemos el degradado */}
+                            <span 
+                                className="text-xl md:text-3xl leading-none -rotate-2 tracking-tighter bg-gradient-to-b from-yellow-100 via-yellow-400 to-yellow-700 bg-clip-text text-transparent select-none"
+                                style={{
+                                    fontFamily: "'Rubik Wet Paint', cursive", // <--- LLAMADA DIRECTA AL NOMBRE DE LA FUENTE
+                                    filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,1))'
+                                }}
+                            >
+                                WISHLIST
+                            </span>
+                            
+                            <span className="hidden sm:block text-[10px] font-digital text-gray-400 tracking-[0.3em] ml-1 group-hover:text-primary transition-colors border-t border-gray-700/50 mt-0.5 pt-0.5 w-full text-center">
+                                GAME AWARDS_2025
+                            </span>
                         </div>
-                    </div>
-                ) : (
-                    <Link href="/login" className="font-digital text-cyber-neon hover:text-white transition-colors text-sm tracking-widest border border-cyber-neon/50 px-4 py-2 rounded hover:bg-cyber-neon/10">
-                        [ LOGIN ]
                     </Link>
-                )}
-            </div>
 
-            {/* Mobile Nav */}
+                    {/* CENTRO: NAVEGACIÓN DESKTOP */}
+                    {user && (
+                        <nav className="hidden md:flex items-center gap-1 bg-black/60 px-2 py-1.5 rounded-full border border-white/10 shadow-xl backdrop-blur-xl">
+                            <Link href="/" className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${pathname === "/" ? "bg-white/10 text-white shadow-inner border border-white/5" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                                <Home size={14} /> Inicio
+                            </Link>
+                            <Link href="/vote" className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${pathname === "/vote" ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_15px_rgba(234,179,8,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                                <Trophy size={14} /> Votar
+                            </Link>
+                            <Link href="/#grupos" className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${pathname.includes("/group") ? "bg-blue-500/20 text-blue-300 border border-blue-500/20" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                                <Users size={14} /> Grupos
+                            </Link>
+                        </nav>
+                    )}
+
+                    {/* DERECHA: PERFIL */}
+                    {user ? (
+                        <div className="flex items-center gap-3 md:gap-5">
+                            <div className="flex items-center gap-3 pl-4 pr-1.5 py-1.5 bg-gradient-to-r from-black/60 to-black/30 border border-white/5 rounded-full hover:border-white/20 transition-colors group/profile">
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-[8px] text-retro-accent uppercase font-digital tracking-[0.2em] leading-none mb-0.5 opacity-70 group-hover/profile:opacity-100 transition-opacity">
+                                        PLAYER_ID
+                                    </p>
+                                    <p className="text-sm font-bold text-gray-200 leading-none truncate max-w-[100px] group-hover/profile:text-white transition-colors font-sans">
+                                        {user.displayName || "Gamer"}
+                                    </p>
+                                </div>
+                                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gray-900 overflow-hidden border-2 border-gray-700 group-hover/profile:border-retro-accent transition-colors shadow-lg">
+                                    {user.photoURL ? (
+                                        <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-bold text-gray-500 font-mono">
+                                            {user.displayName?.[0] || "P1"}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center border-l border-white/10 pl-3 md:pl-5 gap-3 md:gap-4">
+                                <Link href="/settings" className="text-gray-500 hover:text-white transition-colors transform hover:rotate-45 duration-300">
+                                    <Settings size={20} />
+                                </Link>
+                                <button onClick={logout} className="text-gray-500 hover:text-red-500 transition-colors transform hover:scale-110 duration-200">
+                                    <LogOut size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <Link href="/login" className="font-digital text-primary hover:text-black hover:bg-primary transition-all duration-300 text-xs md:text-sm tracking-[0.2em] border border-primary px-4 py-2 rounded-lg shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+                            [ INICIAR_SESIÓN ]
+                        </Link>
+                    )}
+                </div>
+            </header>
+
+            {/* --- BARRA INFERIOR (MOBILE NAVBAR) - FUERA DEL HEADER --- */}
             {user && (
-                <div className="md:hidden fixed bottom-0 left-0 w-full bg-deep/95 backdrop-blur-xl border-t border-white/10 p-4 flex justify-around z-50 pb-safe shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
-                    <Link href="/" className={isActive("/")}><Home size={24} /></Link>
-                    <Link href="/vote" className={isActive("/vote")}><Trophy size={24} /></Link>
-                    <Link href="/#grupos" className={isActive("/group")}><Users size={24} /></Link>
+                <div className="md:hidden fixed bottom-0 left-0 w-full bg-deep/95 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-between items-end z-50 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+                    <Link href="/" className={`flex flex-col items-center gap-1.5 pb-2 transition-all duration-300 ${isActive("/")}`}>
+                        <Home size={22} strokeWidth={pathname === "/" ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold uppercase tracking-widest font-digital">Inicio</span>
+                    </Link>
+
+                    <Link href="/vote" className="relative -top-5 group">
+                        <div className={`p-4 rounded-2xl border-b-4 transition-all duration-300 transform ${pathname === "/vote" ? "bg-primary border-yellow-700 translate-y-[-5px] shadow-[0_10px_20px_rgba(234,179,8,0.4)]" : "bg-gray-800 border-gray-950 text-gray-400 group-hover:-translate-y-2"}`}>
+                            <Trophy size={28} className={pathname === "/vote" ? "text-black fill-black animate-pulse-slow" : "text-gray-400"} />
+                        </div>
+                        <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest font-digital whitespace-nowrap ${pathname === "/vote" ? "text-primary" : "text-gray-500"}`}>
+                            Votar
+                        </span>
+                    </Link>
+
+                    <Link href="/#grupos" className={`flex flex-col items-center gap-1.5 pb-2 transition-all duration-300 ${isActive("/group")}`}>
+                        <Users size={22} strokeWidth={pathname.includes("/group") ? 2.5 : 2} />
+                        <span className="text-[9px] font-bold uppercase tracking-widest font-digital">Ligas</span>
+                    </Link>
                 </div>
             )}
-        </header>
+        </>
     );
 }
