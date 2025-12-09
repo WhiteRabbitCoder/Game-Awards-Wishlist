@@ -3,10 +3,10 @@
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { Category, Nominee } from "@/types";
-import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, writeBatch } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { ArrowLeft, Save, Trophy, Users, Gamepad2, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Trophy, Users, Gamepad2, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import VoteModal from "@/components/VoteModal";
@@ -33,7 +33,6 @@ function VoteContent() {
             if (!user) return;
 
             try {
-                // 1. Cargar Categorías
                 const catSnap = await getDocs(collection(db, "categories"));
                 const catsData = catSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Category[];
 
@@ -57,7 +56,6 @@ function VoteContent() {
 
                 setCategories(catsData);
 
-                // 2. Cargar Votos
                 let votesData = {};
 
                 if (groupId && groupId !== "global") {
@@ -67,15 +65,12 @@ function VoteContent() {
                     }
 
                     const groupVotesSnap = await getDocs(collection(db, "users", user.uid, "groups", groupId, "votes"));
-
                     if (!groupVotesSnap.empty) {
                         groupVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
                     } else {
                         const globalVotesSnap = await getDocs(collection(db, "users", user.uid, "votes"));
                         globalVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
-                        if (!globalVotesSnap.empty) {
-                            toast("Se cargaron tus predicciones globales como base.");
-                        }
+                        if (!globalVotesSnap.empty) toast("Se cargaron tus predicciones globales como base.");
                     }
                 } else {
                     if (groupId === "global") setGroupName("Ranking Mundial (Global)");
@@ -105,7 +100,6 @@ function VoteContent() {
         setIsModalOpen(true);
     };
 
-    // --- CORRECCIÓN AQUÍ: Manejar el número que envía el Modal ---
     const handleVote = (position: number) => {
         if (!selectedCategory || !selectedNominee) return;
 
@@ -114,15 +108,12 @@ function VoteContent() {
             const currentVotes = prev[categoryId] || {};
             const nomineeId = selectedNominee.id;
 
-            // Crear copia de los votos actuales de la categoría
             const newCategoryVotes = { ...currentVotes };
 
-            // 1. Limpiar si el nominado ya estaba en otra posición (para evitar duplicados)
             if (newCategoryVotes.firstPlace === nomineeId) newCategoryVotes.firstPlace = null;
             if (newCategoryVotes.secondPlace === nomineeId) newCategoryVotes.secondPlace = null;
             if (newCategoryVotes.thirdPlace === nomineeId) newCategoryVotes.thirdPlace = null;
 
-            // 2. Asignar nueva posición (si position es 0, solo borramos, que ya se hizo arriba)
             if (position === 1) newCategoryVotes.firstPlace = nomineeId;
             if (position === 2) newCategoryVotes.secondPlace = nomineeId;
             if (position === 3) newCategoryVotes.thirdPlace = nomineeId;
@@ -169,28 +160,33 @@ function VoteContent() {
     };
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center text-white">
+        <div className="min-h-screen flex items-center justify-center text-white bg-deep">
             <Loader2 className="animate-spin mr-2" /> Cargando boleta...
         </div>
     );
 
+    // Calcular progreso
+    const totalCategories = categories.length;
+    const completedCategories = Object.values(votes).filter(v => v.firstPlace).length;
+    const progressPercentage = totalCategories > 0 ? Math.round((completedCategories / totalCategories) * 100) : 0;
+
     return (
-        <div className="min-h-screen bg-gray-900 text-white pb-20">
+        <div className="min-h-screen bg-gradient-to-b from-deep via-surface to-deep text-white pb-24 pt-20">
             {groupId && groupName && (
-                <div className="bg-blue-900/50 border-b border-blue-800 sticky top-0 z-40 backdrop-blur-md">
-                    <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-blue-700/30 sticky top-16 z-40 backdrop-blur-xl shadow-lg">
+                    <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="bg-blue-600 p-2 rounded-full">
-                                {groupId === "global" ? <Trophy size={20} /> : <Users size={20} />}
+                            <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl shadow-lg">
+                                {groupId === "global" ? <Trophy size={20} className="text-white" /> : <Users size={20} className="text-white" />}
                             </div>
                             <div>
-                                <p className="text-xs text-blue-300 uppercase font-bold">Editando predicciones para</p>
+                                <p className="text-xs text-blue-300 uppercase font-bold tracking-wider">Editando predicciones</p>
                                 <p className="font-bold text-white text-lg leading-none">{groupName}</p>
                             </div>
                         </div>
                         <Link
                             href={groupId === "global" ? "/" : `/group/${groupId}`}
-                            className="text-sm text-blue-300 hover:text-white underline"
+                            className="text-sm text-blue-300 hover:text-white underline hover:no-underline transition-all"
                         >
                             Cancelar
                         </Link>
@@ -198,24 +194,49 @@ function VoteContent() {
                 </div>
             )}
 
-            <div className="max-w-4xl mx-auto p-4">
+            <div className="max-w-5xl mx-auto p-4 md:p-6">
                 {!groupId && (
-                    <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6">
-                        <ArrowLeft size={20} /> Volver
+                    <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+                        <ArrowLeft size={20} /> Volver al Inicio
                     </Link>
                 )}
 
-                <div className="mb-8 mt-4 border-b border-gray-800 pb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Gamepad2 className="text-yellow-500" size={32} />
-                        <h1 className="text-3xl md:text-4xl font-bold">Tus Predicciones</h1>
+                {/* HEADER MEJORADO */}
+                <div className="mb-10 mt-6 border-b border-white/10 pb-8">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="bg-gradient-to-br from-yellow-500 to-orange-600 p-4 rounded-2xl shadow-2xl shadow-yellow-500/20">
+                            <Gamepad2 size={36} className="text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                                Tus Predicciones
+                            </h1>
+                            <p className="text-gray-400 text-lg mt-1">
+                                Arma tu <span className="text-yellow-400 font-bold">Tier List</span> de ganadores
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-gray-400 text-lg">
-                        Arma tu <span className="text-white font-bold">Tier List</span> de ganadores. Elige sabiamente, cada punto cuenta para el ranking.
-                    </p>
+
+                    {/* Barra de Progreso */}
+                    <div className="bg-surface border border-white/10 rounded-xl p-4 flex items-center gap-4">
+                        <Sparkles className="text-yellow-500 flex-shrink-0" size={24} />
+                        <div className="flex-1">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-bold text-gray-300">Progreso General</span>
+                                <span className="text-sm font-bold text-yellow-400">{completedCategories}/{totalCategories}</span>
+                            </div>
+                            <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700">
+                                <div
+                                    className="bg-gradient-to-r from-yellow-500 to-orange-500 h-full transition-all duration-500 shadow-lg shadow-yellow-500/50"
+                                    style={{ width: `${progressPercentage}%` }}
+                                />
+                            </div>
+                        </div>
+                        <span className="text-2xl font-black text-yellow-400">{progressPercentage}%</span>
+                    </div>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-10">
                     {categories.map(cat => (
                         <CategorySection
                             key={cat.id}
@@ -226,19 +247,24 @@ function VoteContent() {
                     ))}
                 </div>
 
+                {/* BOTÓN FLOTANTE MEJORADO */}
                 <div className="fixed bottom-6 left-0 right-0 px-4 flex justify-center z-30">
                     <button
                         onClick={saveAllVotes}
                         disabled={saving}
-                        className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-12 rounded-full shadow-lg shadow-yellow-500/20 flex items-center gap-3 transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100"
+                        className="group relative bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-600 hover:from-yellow-400 hover:to-orange-400 text-black font-black py-5 px-16 rounded-full shadow-2xl shadow-yellow-500/40 flex items-center gap-4 transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
                     >
                         {saving ? (
                             <>
-                                <Loader2 className="animate-spin" size={24} /> Guardando...
+                                <Loader2 className="animate-spin" size={28} /> GUARDANDO...
                             </>
                         ) : (
                             <>
-                                <Save size={24} /> GUARDAR PICKS
+                                <Save size={28} className="group-hover:rotate-12 transition-transform" />
+                                <span className="text-xl tracking-wide">GUARDAR PICKS</span>
+                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                                    {completedCategories}
+                                </div>
                             </>
                         )}
                     </button>
@@ -251,8 +277,7 @@ function VoteContent() {
                     onClose={() => setIsModalOpen(false)}
                     nominee={selectedNominee}
                     categoryId={selectedCategory.id}
-                    onVote={handleVote as any} // Cast necesario si el tipo estricto del modal es 1|2|3
-                    // --- CORRECCIÓN AQUÍ: Pasar números (1, 2, 3) en lugar de strings ---
+                    onVote={handleVote as any}
                     currentPosition={
                         votes[selectedCategory.id]?.firstPlace === selectedNominee.id ? 1 :
                             votes[selectedCategory.id]?.secondPlace === selectedNominee.id ? 2 :
@@ -267,7 +292,7 @@ function VoteContent() {
 export default function VotePage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
+            <div className="min-h-screen bg-deep flex items-center justify-center text-white">
                 <Loader2 className="animate-spin mr-2" /> Cargando...
             </div>
         }>

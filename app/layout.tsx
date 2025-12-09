@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { AuthProvider } from "@/context/AuthContext";
 import { Inter } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
+import Navbar from "@/components/Navbar";
 import { Toaster } from "react-hot-toast";
-import Navbar from "@/components/Navbar"; // Importamos el Navbar
-import "./globals.css"; // Asegúrate de que la ruta a tus estilos sea correcta
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Wishlist Awards",
-  description: "Predice los ganadores de los premios de videojuegos",
+  title: "Wishlist Game Awards 2025",
+  description: "Predice los ganadores.",
 };
 
 export default function RootLayout({
@@ -18,29 +18,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.className} bg-gray-950 text-white min-h-screen flex flex-col`}
-      >
+    <html lang="es">
+      <head>
+        {/* IMPORTAR FUENTES AQUÍ */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Rubik+Wet+Paint&family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className={`${inter.className} bg-deep text-white`}>
         <AuthProvider>
-          {/* El Navbar se mostrará en todas las páginas */}
           <Navbar />
-
-          {/* Contenido cambiante de cada página */}
-          <main className="flex-1">{children}</main>
-
-          {/* Footer Global */}
-          <footer className="p-6 border-t border-gray-900 text-center text-gray-600 text-sm">
-            &copy; {new Date().getFullYear()} Wishlist Awards.
-          </footer>
-
+          <main>{children}</main>
           <Toaster
-            position="top-center"
+            position="bottom-center"
             toastOptions={{
               style: {
-                background: "#1f2937",
+                background: "#151B26",
                 color: "#fff",
-                border: "1px solid #374151",
+                border: "1px solid #333",
               },
             }}
           />

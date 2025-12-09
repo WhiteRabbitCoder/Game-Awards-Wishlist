@@ -2,277 +2,354 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { useRouter, useParams } from "next/navigation";
+import { collection, doc, getDoc, getDocs, deleteDoc } from "firebase/firestore";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles } from "lucide-react";
+import { ArrowLeft, Edit, LogOut, Users, Trophy, Copy, Check, Share2, Crown, Loader2 } from "lucide-react";
 import Link from "next/link";
-import GroupStats from "@/components/GroupStats";
-import Leaderboard from "@/components/Leaderboard"; // <--- IMPORTAR ESTO
+import toast from "react-hot-toast";
+import Leaderboard from "@/components/Leaderboard";
 
 interface MemberProfile {
     uid: string;
     username: string;
     photoURL?: string;
-    isOwner: boolean;
-    score: number; // <--- AGREGAR ESTO
+    votesCount?: number;
+}
+
+interface GroupData {
+    name: string;
+    ownerId: string;
+    isPublic: boolean;
+    inviteCode?: string;
 }
 
 export default function GroupPage() {
-    const { user, loading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const params = useParams();
     const groupId = params.id as string;
 
-    const [group, setGroup] = useState<any>(null);
+    const [groupData, setGroupData] = useState<GroupData | null>(null);
     const [members, setMembers] = useState<MemberProfile[]>([]);
-    const [loadingData, setLoadingData] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [copied, setCopied] = useState(false);
 
-    // Protección de ruta
     useEffect(() => {
-        if (!loading && !user) router.push("/login");
-    }, [user, loading, router]);
+        const loadGroupData = async () => {
+            if (!user) return;
 
-    // Cargar datos del grupo y miembros
-    useEffect(() => {
-        const fetchGroupData = async () => {
-            if (!user || !groupId) return;
             try {
-                // 1. Si es el grupo global
-                if (groupId === "global") {
-                    setGroup({ id: "global", name: "Ranking Mundial", isGlobal: true, ownerName: "Sistema" });
-
-                    // --- AGREGAR ESTO PARA EL GLOBAL ---
-                    // Necesitamos cargar usuarios reales para el ranking global
-                    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(50));
-                    const querySnapshot = await getDocs(q);
-                    const globalMembers = querySnapshot.docs.map(doc => ({
-                        uid: doc.id,
-                        username: doc.data().username || "Usuario",
-                        photoURL: doc.data().photoURL,
-                        score: doc.data().score || 0,
-                        isOwner: false
-                    }));
-                    setMembers(globalMembers);
-                    // -----------------------------------
-
-                    setLoadingData(false);
+                // 1. Cargar datos del grupo
+                const groupDoc = await getDoc(doc(db, "groups", groupId));
+                if (!groupDoc.exists()) {
+                    toast.error("Grupo no encontrado");
+                    router.push("/");
                     return;
                 }
-                // 2. Cargar info del grupo privado
-                const groupRef = doc(db, "groups", groupId);
-                const groupSnap = await getDoc(groupRef);
-                if (!groupSnap.exists()) { router.push("/"); return; }
-                const groupData = groupSnap.data();
-                setGroup({ id: groupSnap.id, ...groupData });
 
-                // 3. Cargar miembros (IDs y luego Detalles)
-                const membersRef = collection(db, "groups", groupId, "members");
-                const membersSnap = await getDocs(membersRef);
+                const data = groupDoc.data() as GroupData;
+                setGroupData(data);
 
-                // MAPA DE PUNTAJES DEL GRUPO
-                const groupScores: Record<string, number> = {};
-                membersSnap.docs.forEach(doc => {
-                    groupScores[doc.id] = doc.data().score || 0; // <--- AQUÍ LEEMOS EL SCORE DEL GRUPO
-                });
+                // 2. Cargar miembros del grupo
+                const membersSnap = await getDocs(collection(db, "groups", groupId, "members"));
+                const membersData: MemberProfile[] = [];
 
-                const memberIds = membersSnap.docs.map(d => d.id);
+                for (const memberDoc of membersSnap.docs) {
+                    const memberId = memberDoc.id;
 
-                // Buscamos la info de cada usuario en la colección 'users'
-                const memberPromises = memberIds.map(async (uid) => {
-                    const userDoc = await getDoc(doc(db, "users", uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        return {
-                            uid: uid,
-                            username: userData.username || userData.displayName || "Usuario",
-                            photoURL: userData.photoURL,
-                            isOwner: uid === groupData.ownerId,
-                            // USAMOS EL SCORE DEL GRUPO, NO EL GLOBAL
-                            score: groupScores[uid] !== undefined ? groupScores[uid] : (userData.score || 0)
-                        } as MemberProfile;
+                    // 3. Obtener el perfil completo del usuario desde /users/{uid}
+                    const userProfileDoc = await getDoc(doc(db, "users", memberId));
+
+                    let username = "Usuario";
+                    let photoURL = undefined;
+
+                    if (userProfileDoc.exists()) {
+                        const profileData = userProfileDoc.data();
+                        username = profileData.username || profileData.displayName || "Usuario";
+                        photoURL = profileData.photoURL;
                     }
-                    return null;
-                });
 
-                const resolvedMembers = (await Promise.all(memberPromises)).filter(m => m !== null) as MemberProfile[];
+                    // 4. Contar votos en este grupo específico
+                    let votesCount = 0;
+                    try {
+                        const votesSnap = await getDocs(collection(db, "users", memberId, "groups", groupId, "votes"));
+                        votesCount = votesSnap.docs.filter(v => v.data().firstPlace).length;
+                    } catch (err) {
+                        console.log(`No hay votos para ${username} en este grupo`);
+                    }
 
-                // Ordenar: Dueño primero, luego alfabético
-                resolvedMembers.sort((a, b) => {
-                    if (a.isOwner) return -1;
-                    if (b.isOwner) return 1;
-                    return a.username.localeCompare(b.username);
-                });
+                    membersData.push({
+                        uid: memberId,
+                        username,
+                        photoURL,
+                        votesCount
+                    });
+                }
 
-                setMembers(resolvedMembers);
-            } catch (error) { console.error("Error cargando grupo:", error); } finally { setLoadingData(false); }
+                setMembers(membersData);
+
+            } catch (error) {
+                console.error("Error cargando grupo:", error);
+                toast.error("Error cargando grupo");
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchGroupData();
-    }, [user, groupId]);
 
-    if (loading || loadingData) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Cargando grupo...</div>;
-    if (!group) return null;
+        if (!authLoading) {
+            if (!user) router.push("/login");
+            else loadGroupData();
+        }
+    }, [user, authLoading, router, groupId]);
 
-    // --- VISTA ESPECIAL PARA RANKING MUNDIAL ---
-    if (group.isGlobal) {
+    const handleLeaveGroup = async () => {
+        if (!user || !confirm("¿Seguro que quieres salir del grupo?")) return;
+
+        try {
+            await deleteDoc(doc(db, "groups", groupId, "members", user.uid));
+            toast.success("Has salido del grupo");
+            router.push("/");
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al salir del grupo");
+        }
+    };
+
+    const copyInviteCode = () => {
+        if (!groupData?.inviteCode) return;
+        navigator.clipboard.writeText(groupData.inviteCode);
+        setCopied(true);
+        toast.success("¡Código copiado!");
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const shareGroup = async () => {
+        if (!groupData) return;
+        const shareUrl = `${window.location.origin}/join-group?code=${groupData.inviteCode}`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Únete a ${groupData.name}`,
+                    text: `¡Compite conmigo en Wishlist Awards!`,
+                    url: shareUrl
+                });
+            } catch (err) {
+                console.log("Share cancelled");
+            }
+        } else {
+            navigator.clipboard.writeText(shareUrl);
+            toast.success("¡Link copiado!");
+        }
+    };
+
+    if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white overflow-x-hidden">
-                {/* Hero Section Global */}
-                <div className="relative bg-gradient-to-b from-blue-900/40 to-gray-900 pt-12 pb-16 px-4">
-                    <div className="max-w-6xl mx-auto">
-                        <Link href="/" className="inline-flex items-center gap-2 text-blue-300 hover:text-white mb-8 transition-colors">
-                            <ArrowLeft size={20} /> Volver al inicio
-                        </Link>
-
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                            <div className="text-center md:text-left">
-                                <div className="inline-flex items-center gap-2 bg-yellow-500/10 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/20 mb-4">
-                                    <Globe size={14} />
-                                    <span className="text-xs font-bold uppercase tracking-wider">Comunidad Oficial</span>
-                                </div>
-                                <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                                    Ranking Mundial
-                                </h1>
-                                <p className="text-gray-400 text-lg max-w-xl">
-                                    Descubre qué juegos están dominando las predicciones a nivel global.
-                                    Estas estadísticas se basan en una muestra en tiempo real de la comunidad.
-                                </p>
-                            </div>
-
-                            <Link
-                                href="/vote?groupId=global"
-                                className="group relative inline-flex items-center gap-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-full text-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]"
-                            >
-                                <PlayCircle size={24} />
-                                Editar mis Predicciones
-                                <Sparkles className="absolute -top-2 -right-2 text-yellow-200 animate-pulse" size={20} />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stats Carousel */}
-                <main className="max-w-7xl mx-auto pb-20 px-4 grid lg:grid-cols-3 gap-8"> {/* Convertir en Grid */}
-                    <div className="lg:col-span-2">
-                        <GroupStats
-                            groupId="global"
-                            isGlobal={true}
-                            variant="carousel"
-                        />
-                    </div>
-
-                    {/* AÑADIR LEADERBOARD AQUÍ */}
-                    <div className="lg:col-span-1">
-                        <Leaderboard users={members} currentUserId={user?.uid} />
-                    </div>
-                </main>
+            <div className="min-h-screen bg-deep flex items-center justify-center text-white">
+                <Loader2 className="animate-spin mr-2" size={32} />
+                <span>Cargando grupo...</span>
             </div>
         );
     }
 
-    // --- VISTA ESTÁNDAR PARA GRUPOS PRIVADOS ---
+    if (!groupData) return null;
+
+    const isOwner = user?.uid === groupData.ownerId;
+    const currentUserProfile = members.find(m => m.uid === user?.uid);
+    const totalCategories = 29;
+    const completionPercentage = currentUserProfile?.votesCount
+        ? Math.round((currentUserProfile.votesCount / totalCategories) * 100)
+        : 0;
+
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
-            {/* Header */}
-            <header className="flex items-center gap-4 mb-8">
-                <Link href="/" className="p-2 hover:bg-gray-800 rounded-full transition-colors">
-                    <ArrowLeft />
+        <div className="min-h-screen bg-deep text-white pb-24 pt-20">
+            <div className="max-w-6xl mx-auto px-4 md:px-6">
+
+                {/* NAVEGACIÓN */}
+                <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
+                    <ArrowLeft size={20} /> Volver
                 </Link>
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        {group.name}
-                    </h1>
-                    <p className="text-gray-400 text-sm">
-                        Creado por {group.ownerName || "Admin"}
-                    </p>
-                </div>
-            </header>
 
-            <main className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
-
-                {/* Columna Izquierda: Info y Miembros */}
-                <div className="md:col-span-1 space-y-6">
-                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                        <div className="flex items-center gap-2 text-gray-300 mb-4">
-                            <Users size={20} />
-                            <span className="font-bold">{members.length} Miembros</span>
-                        </div>
-
-                        <div className="bg-black/30 p-3 rounded-lg mb-4">
-                            <p className="text-xs text-gray-500 uppercase mb-1">Código de invitación</p>
-                            <div className="flex justify-between items-center">
-                                <code className="text-xl font-mono font-bold text-yellow-500 tracking-widest">
-                                    {group.code}
-                                </code>
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(group.code)}
-                                    className="p-2 hover:bg-gray-700 rounded-full transition-colors"
-                                    title="Copiar"
-                                >
-                                    <Share2 size={16} />
-                                </button>
+                {/* HEADER DEL GRUPO */}
+                <div className="bg-surface border border-white/10 rounded-xl p-6 md:p-8 mb-8">
+                    <div className="flex items-start justify-between mb-6">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
+                                {groupData.name}
+                            </h1>
+                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                                <Users size={16} />
+                                <span>{members.length} {members.length === 1 ? "miembro" : "miembros"}</span>
                             </div>
                         </div>
 
-                        <Link
-                            href={`/vote?groupId=${group.id}`}
-                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                        >
-                            <PlayCircle size={20} />
-                            Votar para este Grupo
-                        </Link>
+                        {isOwner && (
+                            <div className="bg-primary/20 text-primary border border-primary/30 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-bold">
+                                <Crown size={16} />
+                                Owner
+                            </div>
+                        )}
                     </div>
 
-                    {/* Lista de Miembros */}
-                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                        <h3 className="font-bold text-gray-300 mb-4 flex items-center gap-2">
-                            <Users size={18} />
-                            Integrantes
-                        </h3>
-                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            {members.map((member) => (
-                                <Link
-                                    href={`/profile/${member.username}?groupId=${group.id}`}
-                                    key={member.uid}
-                                    className="flex items-center gap-3 p-2 hover:bg-gray-700/50 rounded-lg transition-colors cursor-pointer"
+                    {/* PROGRESO DEL USUARIO */}
+                    {currentUserProfile && (
+                        <div className="bg-deep/50 border border-white/10 rounded-lg p-4 mb-6">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-bold text-gray-300">Tu Progreso</span>
+                                <span className="text-lg font-black text-primary">{completionPercentage}%</span>
+                            </div>
+                            <div className="w-full bg-deep rounded-full h-2 overflow-hidden border border-white/10">
+                                <div
+                                    className="bg-primary h-full transition-all duration-500"
+                                    style={{ width: `${completionPercentage}%` }}
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                {currentUserProfile.votesCount || 0} de {totalCategories} categorías
+                            </p>
+                        </div>
+                    )}
+
+                    {/* BOTONES DE ACCIÓN */}
+                    <div className="flex flex-wrap gap-3">
+                        <Link
+                            href={`/vote?groupId=${groupId}`}
+                            className="flex-1 min-w-[180px] bg-primary hover:bg-primary-light text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all"
+                        >
+                            <Edit size={20} />
+                            Editar Predicciones
+                        </Link>
+
+                        <button
+                            onClick={handleLeaveGroup}
+                            className="bg-surface hover:bg-red-900/20 border border-white/10 hover:border-red-500/50 text-gray-400 hover:text-red-400 font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-all"
+                        >
+                            <LogOut size={20} />
+                            Salir
+                        </button>
+                    </div>
+                </div>
+
+                {/* CÓDIGO DE INVITACIÓN */}
+                {groupData.inviteCode && (
+                    <div className="bg-surface border border-white/10 rounded-xl p-6 mb-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Código de Invitación</p>
+                                <p className="text-2xl font-black font-digital text-white tracking-wider">
+                                    {groupData.inviteCode}
+                                </p>
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={copyInviteCode}
+                                    className="bg-deep hover:bg-white/5 border border-white/10 text-white p-3 rounded-lg transition-all"
+                                    title="Copiar código"
                                 >
-                                    <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-600">
-                                        {member.photoURL ? (
-                                            <img src={member.photoURL} alt={member.username} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={20} className="text-gray-400" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-sm truncate flex items-center gap-1">
-                                            {member.username}
-                                            {member.isOwner && <Crown size={12} className="text-yellow-500" />}
-                                        </p>
-                                        <p className="text-xs text-gray-500 truncate">
-                                            {member.isOwner ? "Administrador" : "Miembro"}
-                                        </p>
-                                    </div>
+                                    {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
+                                </button>
+                                <button
+                                    onClick={shareGroup}
+                                    className="bg-deep hover:bg-white/5 border border-white/10 text-white p-3 rounded-lg transition-all"
+                                    title="Compartir"
+                                >
+                                    <Share2 size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* GRID: LEADERBOARD + MIEMBROS */}
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* LEADERBOARD */}
+                    <div className="lg:col-span-2">
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                            <Trophy size={24} className="text-primary" />
+                            Ranking
+                        </h2>
+                        <Leaderboard
+                            users={members.map(m => ({ ...m, score: 0 }))}
+                            currentUserId={user?.uid}
+                            groupId={groupId}
+                        />
+                    </div>
+
+                    {/* LISTA DE MIEMBROS */}
+                    <div>
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+                            <Users size={24} className="text-primary" />
+                            Miembros
+                        </h2>
+                        <div className="space-y-3">
+                            {members.map(member => (
+                                // AQUI ESTÁ EL CAMBIO: Envolver con Link
+                                <Link
+                                    key={member.uid}
+                                    href={`/profile/${member.username}?groupId=${groupId}`}
+                                    className="block transition-transform hover:scale-[1.02]"
+                                >
+                                    <MemberCard
+                                        member={member}
+                                        isOwner={member.uid === groupData.ownerId}
+                                        totalCategories={totalCategories}
+                                    />
                                 </Link>
                             ))}
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+}
 
-                {/* Columna Derecha: Ranking y Stats */}
-                <div className="md:col-span-2 space-y-8">
+// CARD DE MIEMBRO (MINIMALISTA)
+// CARD DE MIEMBRO (MODIFICADA PARA MOSTRAR CORONA AL LADO DEL NOMBRE)
+function MemberCard({ member, isOwner, totalCategories }: {
+    member: MemberProfile;
+    isOwner: boolean;
+    totalCategories: number;
+}) {
+    const progress = member.votesCount ? Math.round((member.votesCount / totalCategories) * 100) : 0;
 
-                    {/* REEMPLAZAR EL PLACEHOLDER CON ESTO: */}
-                    <Leaderboard users={members} currentUserId={user?.uid} />
-
-                    {members.length > 0 && (
-                        <GroupStats
-                            groupId={group.id}
-                            memberIds={members.map(m => m.uid)}
-                            variant="list" // Modo lista para grupos privados
-                        />
+    return (
+        <div className="bg-surface border border-white/10 hover:border-primary/30 rounded-lg p-4 transition-all">
+            <div className="flex items-center gap-3 mb-3">
+                {/* AVATAR */}
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-deep border border-white/10 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {member.photoURL ? (
+                        <img src={member.photoURL} alt={member.username} className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="w-full h-full bg-primary/20 flex items-center justify-center text-white font-bold text-sm">
+                            {member.username[0].toUpperCase()}
+                        </div>
                     )}
                 </div>
-            </main>
+
+                {/* INFO */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-white text-sm truncate">{member.username}</p>
+                        {/* AQUI ESTÁ LA CORONA RESTAURADA */}
+                        {isOwner && (
+                            <Crown size={14} className="text-yellow-500 fill-yellow-500/20" />
+                        )}
+                    </div>
+                    <p className="text-xs text-gray-500">{member.votesCount || 0}/{totalCategories} votos</p>
+                </div>
+            </div>
+
+            {/* BARRA DE PROGRESO */}
+            <div className="w-full bg-deep rounded-full h-1.5 overflow-hidden border border-white/10">
+                <div
+                    className="bg-primary h-full transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                />
+            </div>
         </div>
     );
 }
