@@ -2,201 +2,276 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { Category } from "@/types";
-import { collection, getDocs, doc, setDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Trophy, Save } from "lucide-react";
-import CategorySection from "@/components/CategorySection";
+import { Category, Nominee } from "@/types";
+import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from "firebase/firestore";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { ArrowLeft, Save, Trophy, Users, Gamepad2, Loader2 } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import VoteModal from "@/components/VoteModal";
+import CategorySection from "@/components/CategorySection";
 
-// Definimos el orden exacto de los IDs
-const CATEGORY_ORDER = [
-    "game-of-the-year",
-    "best-game-direction",
-    "best-narrative",
-    "best-art-direction",
-    "best-score-and-music",
-    "best-audio-design",
-    "best-performance",
-    "innovation-in-accessibility",
-    "games-for-impact",
-    "best-ongoing-game",
-    "best-community-support",
-    "best-independent-game",
-    "best-debut-indie-game",
-    "best-mobile-game",
-    "best-vr---ar-game",
-    "best-action-game",
-    "best-action---adventure-game",
-    "best-role-playing-game",
-    "best-fighting-game",
-    "best-family-game",
-    "best-sim---strategy-game",
-    "best-sports---racing-game",
-    "best-multiplayer-game",
-    "best-adaptation",
-    "most-anticipated-game",
-    "content-creator-of-the-year",
-    "best-esports-game",
-    "best-esports-athlete",
-    "best-esports-team"
-];
-
-export default function VotePage() {
-    const { user, loading } = useAuth();
+function VoteContent() {
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const groupId = searchParams.get("groupId");
 
     const [categories, setCategories] = useState<Category[]>([]);
-    const [loadingData, setLoadingData] = useState(true);
+    const [votes, setVotes] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [groupName, setGroupName] = useState<string | null>(null);
 
-    // Estado local de votos: { categoryId: { nomineeId: rank } }
-    const [userVotes, setUserVotes] = useState<Record<string, Record<string, number>>>({});
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+    const [selectedNominee, setSelectedNominee] = useState<Nominee | null>(null);
 
-    // 1. Protección de ruta
     useEffect(() => {
-        if (!loading) {
-            if (!user) router.push("/login");
-            else if (!user.emailVerified) router.push("/verify-email");
-        }
-    }, [user, loading, router]);
+        const loadData = async () => {
+            if (!user) return;
 
-    // 2. Cargar Categorías y Votos del Usuario
-    useEffect(() => {
-        const fetchData = async () => {
-            if (user && user.emailVerified) {
-                try {
-                    // A. Cargar Categorías
-                    const catSnapshot = await getDocs(collection(db, "categories"));
-                    const catData = catSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })) as Category[];
+            try {
+                // 1. Cargar Categorías
+                const catSnap = await getDocs(collection(db, "categories"));
+                const catsData = catSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Category[];
 
-                    // Ordenar
-                    catData.sort((a, b) => {
-                        const indexA = CATEGORY_ORDER.indexOf(a.id);
-                        const indexB = CATEGORY_ORDER.indexOf(b.id);
-                        if (indexA === -1) return 1;
-                        if (indexB === -1) return -1;
-                        return indexA - indexB;
-                    });
-                    setCategories(catData);
+                const CATEGORY_ORDER = [
+                    "game-of-the-year", "best-game-direction", "best-narrative", "best-art-direction",
+                    "best-score-and-music", "best-audio-design", "best-performance", "innovation-in-accessibility",
+                    "games-for-impact", "best-ongoing-game", "best-community-support", "best-independent-game",
+                    "best-debut-indie-game", "best-mobile-game", "best-vr---ar-game", "best-action-game",
+                    "best-action---adventure-game", "best-role-playing-game", "best-fighting-game", "best-family-game",
+                    "best-sim---strategy-game", "best-sports---racing-game", "best-multiplayer-game", "best-adaptation",
+                    "most-anticipated-game", "content-creator-of-the-year", "best-esports-game", "best-esports-athlete", "best-esports-team"
+                ];
 
-                    // B. Cargar Votos Existentes del Usuario
-                    // Estructura en DB: users/{uid}/votes/{categoryId} -> { firstPlace: "id", secondPlace: "id", ... }
-                    const votesSnapshot = await getDocs(collection(db, "users", user.uid, "votes"));
-                    const loadedVotes: Record<string, Record<string, number>> = {};
+                catsData.sort((a, b) => {
+                    const indexA = CATEGORY_ORDER.indexOf(a.id);
+                    const indexB = CATEGORY_ORDER.indexOf(b.id);
+                    if (indexA === -1) return 1;
+                    if (indexB === -1) return -1;
+                    return indexA - indexB;
+                });
 
-                    votesSnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const categoryId = doc.id;
-                        loadedVotes[categoryId] = {};
+                setCategories(catsData);
 
-                        if (data.firstPlace) loadedVotes[categoryId][data.firstPlace] = 1;
-                        if (data.secondPlace) loadedVotes[categoryId][data.secondPlace] = 2;
-                        if (data.thirdPlace) loadedVotes[categoryId][data.thirdPlace] = 3;
-                    });
+                // 2. Cargar Votos
+                let votesData = {};
 
-                    setUserVotes(loadedVotes);
+                if (groupId && groupId !== "global") {
+                    const groupDoc = await getDoc(doc(db, "groups", groupId));
+                    if (groupDoc.exists()) {
+                        setGroupName(groupDoc.data().name);
+                    }
 
-                } catch (error) {
-                    console.error("Error cargando datos:", error);
-                } finally {
-                    setLoadingData(false);
+                    const groupVotesSnap = await getDocs(collection(db, "users", user.uid, "groups", groupId, "votes"));
+
+                    if (!groupVotesSnap.empty) {
+                        groupVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
+                    } else {
+                        const globalVotesSnap = await getDocs(collection(db, "users", user.uid, "votes"));
+                        globalVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
+                        if (!globalVotesSnap.empty) {
+                            toast("Se cargaron tus predicciones globales como base.");
+                        }
+                    }
+                } else {
+                    if (groupId === "global") setGroupName("Ranking Mundial (Global)");
+                    const globalVotesSnap = await getDocs(collection(db, "users", user.uid, "votes"));
+                    globalVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
                 }
+
+                setVotes(votesData);
+
+            } catch (error) {
+                console.error(error);
+                toast.error("Error cargando datos");
+            } finally {
+                setLoading(false);
             }
         };
-        fetchData();
-    }, [user]);
 
-    // 3. Función para manejar el voto
-    const handleVote = async (categoryId: string, nomineeId: string, position: 1 | 2 | 3 | 0) => {
-        if (!user) return;
-
-        // Copiamos el estado actual de esa categoría
-        const currentCategoryVotes = { ...(userVotes[categoryId] || {}) };
-
-        // Lógica de reemplazo:
-        // Si el usuario elige posición 0, es para borrar el voto
-        if (position === 0) {
-            delete currentCategoryVotes[nomineeId];
-        } else {
-            // Si otro juego ya tenía esa posición, se la quitamos (no puede haber dos 1ros lugares)
-            Object.keys(currentCategoryVotes).forEach(key => {
-                if (currentCategoryVotes[key] === position) {
-                    delete currentCategoryVotes[key];
-                }
-            });
-            // Asignamos la nueva posición al juego seleccionado
-            currentCategoryVotes[nomineeId] = position;
+        if (!authLoading) {
+            if (!user) router.push("/login");
+            else loadData();
         }
+    }, [user, authLoading, router, groupId]);
 
-        // Actualizamos estado local (para que se vea rápido en UI)
-        setUserVotes(prev => ({
-            ...prev,
-            [categoryId]: currentCategoryVotes
-        }));
+    const handleNomineeClick = (category: Category, nominee: Nominee) => {
+        setSelectedCategory(category);
+        setSelectedNominee(nominee);
+        setIsModalOpen(true);
+    };
 
-        // Guardamos en Firebase
-        // Convertimos el mapa { id: rank } a { firstPlace: id, ... }
-        const firestoreData = {
-            firstPlace: null as string | null,
-            secondPlace: null as string | null,
-            thirdPlace: null as string | null,
-            updatedAt: new Date()
-        };
+    // --- CORRECCIÓN AQUÍ: Manejar el número que envía el Modal ---
+    const handleVote = (position: number) => {
+        if (!selectedCategory || !selectedNominee) return;
 
-        Object.entries(currentCategoryVotes).forEach(([id, rank]) => {
-            if (rank === 1) firestoreData.firstPlace = id;
-            if (rank === 2) firestoreData.secondPlace = id;
-            if (rank === 3) firestoreData.thirdPlace = id;
+        setVotes(prev => {
+            const categoryId = selectedCategory.id;
+            const currentVotes = prev[categoryId] || {};
+            const nomineeId = selectedNominee.id;
+
+            // Crear copia de los votos actuales de la categoría
+            const newCategoryVotes = { ...currentVotes };
+
+            // 1. Limpiar si el nominado ya estaba en otra posición (para evitar duplicados)
+            if (newCategoryVotes.firstPlace === nomineeId) newCategoryVotes.firstPlace = null;
+            if (newCategoryVotes.secondPlace === nomineeId) newCategoryVotes.secondPlace = null;
+            if (newCategoryVotes.thirdPlace === nomineeId) newCategoryVotes.thirdPlace = null;
+
+            // 2. Asignar nueva posición (si position es 0, solo borramos, que ya se hizo arriba)
+            if (position === 1) newCategoryVotes.firstPlace = nomineeId;
+            if (position === 2) newCategoryVotes.secondPlace = nomineeId;
+            if (position === 3) newCategoryVotes.thirdPlace = nomineeId;
+
+            return {
+                ...prev,
+                [categoryId]: newCategoryVotes
+            };
         });
 
+        setIsModalOpen(false);
+    };
+
+    const saveAllVotes = async () => {
+        if (!user) return;
+        setSaving(true);
+        const toastId = toast.loading("Guardando predicciones...");
+
         try {
-            const voteRef = doc(db, "users", user.uid, "votes", categoryId);
-            await setDoc(voteRef, firestoreData);
+            const batch = writeBatch(db);
+            let collectionPath = `users/${user.uid}/votes`;
+
+            if (groupId && groupId !== "global") {
+                collectionPath = `users/${user.uid}/groups/${groupId}/votes`;
+            }
+
+            Object.entries(votes).forEach(([categoryId, voteData]) => {
+                const docRef = doc(db, collectionPath, categoryId);
+                batch.set(docRef, voteData);
+            });
+
+            await batch.commit();
+            toast.success("¡Predicciones guardadas!", { id: toastId });
+
+            if (groupId && groupId !== "global") router.push(`/group/${groupId}`);
+            else router.push("/");
+
         } catch (error) {
-            console.error("Error guardando voto:", error);
+            console.error(error);
+            toast.error("Error al guardar", { id: toastId });
+        } finally {
+            setSaving(false);
         }
     };
 
-    if (loading || (user && !categories.length && loadingData)) {
-        return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Cargando premios...</div>;
-    }
-
-    if (!user || !user.emailVerified) return null;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center text-white">
+            <Loader2 className="animate-spin mr-2" /> Cargando boleta...
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
-            <header className="flex items-center justify-between mb-8 sticky top-0 bg-gray-900/95 z-40 py-4 border-b border-gray-800 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                    <Link href="/" className="p-2 hover:bg-gray-800 rounded-full transition-colors">
-                        <ArrowLeft />
+        <div className="min-h-screen bg-gray-900 text-white pb-20">
+            {groupId && groupName && (
+                <div className="bg-blue-900/50 border-b border-blue-800 sticky top-0 z-40 backdrop-blur-md">
+                    <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-600 p-2 rounded-full">
+                                {groupId === "global" ? <Trophy size={20} /> : <Users size={20} />}
+                            </div>
+                            <div>
+                                <p className="text-xs text-blue-300 uppercase font-bold">Editando predicciones para</p>
+                                <p className="font-bold text-white text-lg leading-none">{groupName}</p>
+                            </div>
+                        </div>
+                        <Link
+                            href={groupId === "global" ? "/" : `/group/${groupId}`}
+                            className="text-sm text-blue-300 hover:text-white underline"
+                        >
+                            Cancelar
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            <div className="max-w-4xl mx-auto p-4">
+                {!groupId && (
+                    <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6">
+                        <ArrowLeft size={20} /> Volver
                     </Link>
-                    <h1 className="text-xl font-bold flex items-center gap-2">
-                        <Trophy className="text-yellow-500" size={20} />
-                        <span className="hidden sm:inline">Votación Oficial</span>
-                    </h1>
+                )}
+
+                <div className="mb-8 mt-4 border-b border-gray-800 pb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Gamepad2 className="text-yellow-500" size={32} />
+                        <h1 className="text-3xl md:text-4xl font-bold">Tus Predicciones</h1>
+                    </div>
+                    <p className="text-gray-400 text-lg">
+                        Arma tu <span className="text-white font-bold">Tier List</span> de ganadores. Elige sabiamente, cada punto cuenta para el ranking.
+                    </p>
                 </div>
 
-                {/* Indicador de guardado (opcional, visual feedback) */}
-                <div className="flex items-center gap-2 text-xs text-green-400 bg-green-900/20 px-3 py-1 rounded-full border border-green-900/50">
-                    <Save size={12} />
-                    Guardado automático
+                <div className="space-y-8">
+                    {categories.map(cat => (
+                        <CategorySection
+                            key={cat.id}
+                            category={cat}
+                            userVotes={votes[cat.id]}
+                            onNomineeClick={handleNomineeClick}
+                        />
+                    ))}
                 </div>
-            </header>
 
-            <main className="max-w-7xl mx-auto space-y-8 pb-20">
-                {categories.map((cat) => (
-                    <CategorySection
-                        key={cat.id}
-                        category={cat}
-                        votes={userVotes[cat.id] || {}} // Pasamos solo los votos de esta categoría
-                        onVote={(nomineeId, position) => handleVote(cat.id, nomineeId, position)}
-                    />
-                ))}
-            </main>
+                <div className="fixed bottom-6 left-0 right-0 px-4 flex justify-center z-30">
+                    <button
+                        onClick={saveAllVotes}
+                        disabled={saving}
+                        className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-12 rounded-full shadow-lg shadow-yellow-500/20 flex items-center gap-3 transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100"
+                    >
+                        {saving ? (
+                            <>
+                                <Loader2 className="animate-spin" size={24} /> Guardando...
+                            </>
+                        ) : (
+                            <>
+                                <Save size={24} /> GUARDAR PICKS
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {selectedCategory && selectedNominee && (
+                <VoteModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    nominee={selectedNominee}
+                    categoryId={selectedCategory.id}
+                    onVote={handleVote as any} // Cast necesario si el tipo estricto del modal es 1|2|3
+                    // --- CORRECCIÓN AQUÍ: Pasar números (1, 2, 3) en lugar de strings ---
+                    currentPosition={
+                        votes[selectedCategory.id]?.firstPlace === selectedNominee.id ? 1 :
+                            votes[selectedCategory.id]?.secondPlace === selectedNominee.id ? 2 :
+                                votes[selectedCategory.id]?.thirdPlace === selectedNominee.id ? 3 : null
+                    }
+                />
+            )}
         </div>
+    );
+}
+
+export default function VotePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
+                <Loader2 className="animate-spin mr-2" /> Cargando...
+            </div>
+        }>
+            <VoteContent />
+        </Suspense>
     );
 }
