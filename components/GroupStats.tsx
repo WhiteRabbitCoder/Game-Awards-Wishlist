@@ -92,7 +92,7 @@ export default function GroupStats({ groupId, memberIds = [], isGlobal = false, 
                 });
 
                 const results: StatResult[] = categories.map(cat => {
-                    let topNomineeId = null;
+                    let topNomineeId: string | null = null;
                     let maxVotes = -1;
                     let totalCategoryVotes = 0;
 
@@ -104,8 +104,9 @@ export default function GroupStats({ groupId, memberIds = [], isGlobal = false, 
                         }
                     });
 
-                    const topNominee = cat.nominees.find(n => n.id === topNomineeId) || null;
-
+                   const topNominee = topNomineeId 
+                        ? cat.nominees.find(n => n.id === topNomineeId) || null
+                        : null;
                     return {
                         categoryId: cat.id,
                         categoryName: cat.name,
