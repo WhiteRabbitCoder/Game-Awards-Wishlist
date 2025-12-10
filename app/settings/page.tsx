@@ -63,6 +63,13 @@ export default function SettingsPage() {
     useEffect(() => {
         const loadUserData = async () => {
             if (!user) return;
+
+            // Verificar email
+            if (!user.emailVerified) {
+                router.push("/verify-email");
+                return;
+            }
+
             try {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if (userDoc.exists()) {

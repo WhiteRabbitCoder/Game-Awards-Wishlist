@@ -91,7 +91,9 @@ function VoteContent() {
 
         if (!authLoading) {
             if (!user) router.push("/login");
-            else loadData();
+            else if (!user.emailVerified) {
+                router.push("/verify-email");
+            }
         }
     }, [user, authLoading, router, groupId]);
 

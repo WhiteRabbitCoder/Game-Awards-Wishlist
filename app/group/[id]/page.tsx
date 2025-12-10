@@ -2,355 +2,443 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, doc, getDoc, getDocs, deleteDoc } from "firebase/firestore";
-import { useParams, useRouter } from "next/navigation";
+import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Edit, LogOut, Users, Trophy, Copy, Check, Share2, Crown, Loader2 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles, BarChart3, Loader2, Copy, Check } from "lucide-react";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import GroupStats from "@/components/GroupStats";
 import Leaderboard from "@/components/Leaderboard";
+
+const CATEGORY_ORDER = [
+    "game-of-the-year", "best-game-direction", "best-narrative", "best-art-direction",
+    "best-score-and-music", "best-audio-design", "best-performance", "innovation-in-accessibility",
+    "games-for-impact", "best-ongoing-game", "best-community-support", "best-independent-game",
+    "best-debut-indie-game", "best-mobile-game", "best-vr---ar-game", "best-action-game",
+    "best-action---adventure-game", "best-role-playing-game", "best-fighting-game", "best-family-game",
+    "best-sim---strategy-game", "best-sports---racing-game", "best-multiplayer-game", "best-adaptation",
+    "most-anticipated-game", "content-creator-of-the-year", "best-esports-game", "best-esports-athlete", "best-esports-team"
+];
 
 interface MemberProfile {
     uid: string;
     username: string;
     photoURL?: string;
-    votesCount?: number;
-}
-
-interface GroupData {
-    name: string;
-    ownerId: string;
-    isPublic: boolean;
-    inviteCode?: string;
+    isOwner: boolean;
+    score: number;
 }
 
 export default function GroupPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading } = useAuth();
     const router = useRouter();
     const params = useParams();
-    const groupId = params.id as string;
+    const groupId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
-    const [groupData, setGroupData] = useState<GroupData | null>(null);
+    const [group, setGroup] = useState<any>(null);
     const [members, setMembers] = useState<MemberProfile[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
+    const [loadingData, setLoadingData] = useState(true);
+    const [stats, setStats] = useState<any[]>([]);
+    const [copiedCode, setCopiedCode] = useState(false);
 
+    // Protección de ruta
     useEffect(() => {
-        const loadGroupData = async () => {
-            if (!user) return;
+        if (!loading && !user) router.push("/login");
+    }, [user, loading, router]);
 
+    // Cargar datos del grupo y miembros
+    useEffect(() => {
+        const fetchGroupData = async () => {
+            if (!user || !groupId) return;
             try {
-                // 1. Cargar datos del grupo
-                const groupDoc = await getDoc(doc(db, "groups", groupId));
-                if (!groupDoc.exists()) {
-                    toast.error("Grupo no encontrado");
-                    router.push("/");
+                // 1. Si es el grupo global
+                if (groupId === "global") {
+                    setGroup({ id: "global", name: "Ranking Mundial", isGlobal: true, ownerName: "Sistema" });
+
+                    const q = query(collection(db, "users"), orderBy("score", "desc"), limit(50));
+                    const querySnapshot = await getDocs(q);
+                    const globalMembers = querySnapshot.docs.map(doc => ({
+                        uid: doc.id,
+                        username: doc.data().username || "Usuario",
+                        photoURL: doc.data().photoURL,
+                        score: doc.data().score || 0,
+                        isOwner: false
+                    }));
+                    setMembers(globalMembers);
+                    setLoadingData(false);
                     return;
                 }
 
-                const data = groupDoc.data() as GroupData;
-                setGroupData(data);
+                // 2. Cargar info del grupo privado
+                const groupRef = doc(db, "groups", groupId);
+                const groupSnap = await getDoc(groupRef);
+                if (!groupSnap.exists()) { router.push("/"); return; }
 
-                // 2. Cargar miembros del grupo
-                const membersSnap = await getDocs(collection(db, "groups", groupId, "members"));
-                const membersData: MemberProfile[] = [];
+                const groupData = groupSnap.data();
+                setGroup({ id: groupSnap.id, ...groupData });
 
-                for (const memberDoc of membersSnap.docs) {
-                    const memberId = memberDoc.id;
+                // 3. Cargar miembros
+                const membersRef = collection(db, "groups", groupId, "members");
+                const membersSnap = await getDocs(membersRef);
 
-                    // 3. Obtener el perfil completo del usuario desde /users/{uid}
-                    const userProfileDoc = await getDoc(doc(db, "users", memberId));
+                // Mapa de puntajes del grupo
+                const groupScores: Record<string, number> = {};
+                membersSnap.docs.forEach(doc => {
+                    groupScores[doc.id] = doc.data().score || 0;
+                });
 
-                    let username = "Usuario";
-                    let photoURL = undefined;
+                const memberIds = membersSnap.docs.map(d => d.id);
 
-                    if (userProfileDoc.exists()) {
-                        const profileData = userProfileDoc.data();
-                        username = profileData.username || profileData.displayName || "Usuario";
-                        photoURL = profileData.photoURL;
+                const memberPromises = memberIds.map(async (uid) => {
+                    const userDoc = await getDoc(doc(db, "users", uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        return {
+                            uid: uid,
+                            username: userData.username || userData.displayName || "Usuario",
+                            photoURL: userData.photoURL,
+                            isOwner: uid === groupData.ownerId,
+                            score: groupScores[uid] !== undefined ? groupScores[uid] : (userData.score || 0)
+                        } as MemberProfile;
                     }
+                    return null;
+                });
 
-                    // 4. Contar votos en este grupo específico
-                    let votesCount = 0;
-                    try {
-                        const votesSnap = await getDocs(collection(db, "users", memberId, "groups", groupId, "votes"));
-                        votesCount = votesSnap.docs.filter(v => v.data().firstPlace).length;
-                    } catch (err) {
-                        console.log(`No hay votos para ${username} en este grupo`);
-                    }
+                const resolvedMembers = (await Promise.all(memberPromises)).filter(m => m !== null) as MemberProfile[];
 
-                    membersData.push({
-                        uid: memberId,
-                        username,
-                        photoURL,
-                        votesCount
-                    });
-                }
+                resolvedMembers.sort((a, b) => {
+                    if (a.isOwner) return -1;
+                    if (b.isOwner) return 1;
+                    return a.username.localeCompare(b.username);
+                });
 
-                setMembers(membersData);
-
+                setMembers(resolvedMembers);
             } catch (error) {
                 console.error("Error cargando grupo:", error);
-                toast.error("Error cargando grupo");
             } finally {
-                setLoading(false);
+                setLoadingData(false);
             }
         };
 
-        if (!authLoading) {
-            if (!user) router.push("/login");
-            else loadGroupData();
-        }
-    }, [user, authLoading, router, groupId]);
+        fetchGroupData();
+    }, [user, groupId, router]); // Agregué router a las dependencias por buena práctica
 
-    const handleLeaveGroup = async () => {
-        if (!user || !confirm("¿Seguro que quieres salir del grupo?")) return;
-
-        try {
-            await deleteDoc(doc(db, "groups", groupId, "members", user.uid));
-            toast.success("Has salido del grupo");
-            router.push("/");
-        } catch (error) {
-            console.error(error);
-            toast.error("Error al salir del grupo");
-        }
-    };
-
-    const copyInviteCode = () => {
-        if (!groupData?.inviteCode) return;
-        navigator.clipboard.writeText(groupData.inviteCode);
-        setCopied(true);
-        toast.success("¡Código copiado!");
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    const shareGroup = async () => {
-        if (!groupData) return;
-        const shareUrl = `${window.location.origin}/join-group?code=${groupData.inviteCode}`;
-
-        if (navigator.share) {
+    // Cálculo de estadísticas (llamado una sola vez al cargar el grupo)
+    useEffect(() => {
+        const calculateStats = async () => {
+            if (!user || !groupId) return;
             try {
-                await navigator.share({
-                    title: `Únete a ${groupData.name}`,
-                    text: `¡Compite conmigo en Wishlist Awards!`,
-                    url: shareUrl
-                });
-            } catch (err) {
-                console.log("Share cancelled");
-            }
-        } else {
-            navigator.clipboard.writeText(shareUrl);
-            toast.success("¡Link copiado!");
-        }
-    };
+                const membersRef = collection(db, "groups", groupId, "members");
+                const membersSnap = await getDocs(membersRef);
 
-    if (loading) {
+                // 1. Obtener todos los votos de los miembros del grupo
+                const votesPromises = membersSnap.docs.map(async (memberDoc) => {
+                    const memberId = memberDoc.id;
+                    // CORRECCIÓN: Apuntar a la colección de votos específica del grupo
+                    const votesRef = collection(db, "users", memberId, "groups", groupId, "votes");
+                    const votesSnap = await getDocs(votesRef);
+
+                    return votesSnap.docs.map(voteDoc => ({
+                        memberId: memberId,
+                        ...voteDoc.data()
+                    }));
+                });
+
+                const allVotes = (await Promise.all(votesPromises)).flat();
+
+                // Filtrar solo las categorías que importan
+                const filteredVotes = allVotes.filter(vote => CATEGORY_ORDER.includes(vote.categoryId));
+
+                // Agrupar por categoría y contar votos
+                const statsMap: Record<string, any> = {};
+                filteredVotes.forEach(vote => {
+                    if (!statsMap[vote.categoryId]) {
+                        statsMap[vote.categoryId] = {
+                            categoryId: vote.categoryId,
+                            totalVotes: 0,
+                            // ... otras métricas que quieras calcular
+                        };
+                    }
+                    statsMap[vote.categoryId].totalVotes++;
+                });
+
+                // Convertir a array y ordenar
+                const results = Object.values(statsMap).map(stat => {
+                    const totalCategoryVotes = filteredVotes.filter(vote => vote.categoryId === stat.categoryId).length;
+                    return {
+                        ...stat,
+                        totalVotes: totalCategoryVotes
+                    };
+                });
+
+                // 2. Ordenar los resultados según el array CATEGORY_ORDER
+                results.sort((a, b) => {
+                    const indexA = CATEGORY_ORDER.indexOf(a.categoryId);
+                    const indexB = CATEGORY_ORDER.indexOf(b.categoryId);
+                    if (indexA === -1) return 1;
+                    if (indexB === -1) return -1;
+                    return indexA - indexB;
+                });
+
+                setStats(results.filter(r => r.totalVotes > 0));
+
+            } catch (error) {
+                console.error("Error calculando estadísticas:", error);
+            }
+        };
+
+        calculateStats();
+    }, [user, groupId]);
+
+    if (loading || loadingData) return (
+        <div className="min-h-screen bg-deep flex items-center justify-center text-white">
+            <div className="animate-pulse flex flex-col items-center gap-4">
+                <div className="h-12 w-12 rounded-full border-4 border-t-primary border-r-transparent border-b-surface border-l-transparent animate-spin"></div>
+                <span className="text-gray-400 font-medium">Cargando experiencia...</span>
+            </div>
+        </div>
+    );
+
+    if (!group) return null;
+
+    // --- RANKING GLOBAL CON NUEVO DISEÑO ---
+    if (group.isGlobal) {
         return (
-            <div className="min-h-screen bg-deep flex items-center justify-center text-white">
-                <Loader2 className="animate-spin mr-2" size={32} />
-                <span>Cargando grupo...</span>
+            <div className="min-h-screen bg-deep text-white overflow-x-hidden">
+                {/* Hero Section Mejorada */}
+                <div className="relative pt-24 pb-20 px-4 md:px-6 overflow-hidden">
+                    {/* Fondo animado */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-surface/50" />
+                    <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat opacity-5"></div>
+
+                    {/* Elementos decorativos */}
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-retro-accent/20 rounded-full blur-[100px] animate-pulse delay-1000" />
+
+                    <div className="max-w-7xl mx-auto relative z-10">
+                        {/* Botón de retorno */}
+                        <Link href="/" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 mb-12 transition-colors group">
+                            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                            Volver al inicio
+                        </Link>
+
+                        {/* Contenido principal */}
+                        <div className="grid md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <div className="inline-flex items-center gap-3 bg-primary/10 text-primary px-4 py-2 rounded-full border border-primary/30 mb-6 backdrop-blur-sm">
+                                    <Globe size={16} className="animate-pulse" />
+                                    <span className="text-xs font-bold uppercase tracking-wider">Comunidad Global</span>
+                                </div>
+
+                                <h1 className="text-5xl md:text-6xl font-black mb-6 leading-tight">
+                                    <span className="bg-gradient-to-r from-primary via-white to-primary bg-clip-text text-transparent">
+                                        Ranking
+                                    </span>
+                                    <br />
+                                    <span className="text-white">Mundial</span>
+                                </h1>
+
+                                <p className="text-gray-300 text-lg mb-8 leading-relaxed max-w-lg">
+                                    Descubre los mejores predictores de la comunidad global y comparte tus propias predicciones en The Game Awards.
+                                </p>
+
+                                <Link
+                                    href="/vote?groupId=global"
+                                    className="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-black font-bold py-4 px-8 rounded-xl text-lg transition-all hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:scale-105 group"
+                                >
+                                    <PlayCircle size={24} className="group-hover:scale-110 transition-transform" />
+                                    Hacer Predicciones
+                                    <Sparkles size={20} className="animate-pulse" />
+                                </Link>
+                            </div>
+
+                            {/* Ilustración decorativa */}
+                            <div className="hidden md:flex items-center justify-center">
+                                <div className="relative w-full aspect-square">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-retro-accent/20 rounded-2xl blur-2xl" />
+                                    <div className="absolute inset-0 border border-primary/30 rounded-2xl backdrop-blur-sm" />
+                                    <div className="flex items-center justify-center h-full">
+                                        <Trophy size={120} className="text-primary/50" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Contenido Principal */}
+                <main className="max-w-7xl mx-auto pb-24 px-4 md:px-6">
+                    <div className="grid lg:grid-cols-3 gap-8">
+                        {/* Leaderboard Principal */}
+                        <div className="lg:col-span-2">
+                            <div className="bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+                                <Leaderboard users={members} currentUserId={user?.uid} />
+                            </div>
+                        </div>
+
+                        {/* Estadísticas */}
+                        <div className="lg:col-span-1">
+                            <div className="sticky top-24 bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+                                <GroupStats
+                                    groupId="global"
+                                    isGlobal={true}
+                                    variant="list"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </main>
             </div>
         );
     }
 
-    if (!groupData) return null;
-
-    const isOwner = user?.uid === groupData.ownerId;
-    const currentUserProfile = members.find(m => m.uid === user?.uid);
-    const totalCategories = 29;
-    const completionPercentage = currentUserProfile?.votesCount
-        ? Math.round((currentUserProfile.votesCount / totalCategories) * 100)
-        : 0;
-
+    // --- GRUPOS PRIVADOS CON NUEVO DISEÑO ---
     return (
-        <div className="min-h-screen bg-deep text-white pb-24 pt-20">
-            <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="min-h-screen bg-deep text-white overflow-x-hidden">
+            {/* Header con fondo degradado */}
+            <div className="relative border-b border-white/10 bg-gradient-to-b from-surface/50 to-deep">
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(234,179,8,0.03)_1px,transparent_1px)] opacity-50" />
 
-                {/* NAVEGACIÓN */}
-                <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-                    <ArrowLeft size={20} /> Volver
-                </Link>
+                <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 relative z-10">
+                    <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-primary mb-6 transition-colors group">
+                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        Volver
+                    </Link>
 
-                {/* HEADER DEL GRUPO */}
-                <div className="bg-surface border border-white/10 rounded-xl p-6 md:p-8 mb-8">
-                    <div className="flex items-start justify-between mb-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
-                                {groupData.name}
+                            <h1 className="text-4xl md:text-5xl font-black mb-2 flex items-center gap-3">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-primary/20 rounded-lg blur-lg animate-pulse" />
+                                    <Trophy size={40} className="text-primary relative" />
+                                </div>
+                                {group.name}
                             </h1>
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <p className="text-gray-400 flex items-center gap-2">
                                 <Users size={16} />
-                                <span>{members.length} {members.length === 1 ? "miembro" : "miembros"}</span>
-                            </div>
+                                {members.length} miembro{members.length !== 1 ? 's' : ''} • Creado por <span className="text-primary font-semibold">{group.ownerName || "Admin"}</span>
+                            </p>
                         </div>
 
-                        {isOwner && (
-                            <div className="bg-primary/20 text-primary border border-primary/30 px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-bold">
-                                <Crown size={16} />
-                                Owner
-                            </div>
-                        )}
-                    </div>
-
-                    {/* PROGRESO DEL USUARIO (REDiseñado) */}
-                    {currentUserProfile && (
-                        <div className="bg-surface border border-white/10 rounded-xl p-4 flex items-center gap-4 mt-6">
-                            <Trophy className="text-primary flex-shrink-0" size={24} />
-                            <div className="flex-1">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-bold text-gray-300">Tu Progreso en el Grupo</span>
-                                    <span className="text-sm font-bold text-primary">{currentUserProfile.votesCount || 0}/{totalCategories}</span>
-                                </div>
-                                <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700">
-                                    <div
-                                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-full transition-all duration-500 shadow-lg shadow-primary/50"
-                                        style={{ width: `${completionPercentage}%` }}
-                                    />
-                                </div>
-                            </div>
-                            <span className="text-2xl font-black text-primary">{completionPercentage}%</span>
-                        </div>
-                    )}
-
-                    {/* BOTONES DE ACCIÓN */}
-                    <div className="flex flex-wrap gap-3 mt-6">
                         <Link
-                            href={`/vote?groupId=${groupId}`}
-                            className="flex-1 min-w-[180px] bg-primary hover:bg-primary-light text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all"
+                            href={`/vote?groupId=${group.id}`}
+                            className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-black font-bold py-4 px-8 rounded-xl transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.3)] hover:scale-105 group"
                         >
-                            <Edit size={20} />
-                            Editar Predicciones en el Grupo
+                            <PlayCircle size={20} className="group-hover:scale-110 transition-transform" />
+                            Jugar en este Grupo
                         </Link>
-
-                        <button
-                            onClick={handleLeaveGroup}
-                            className="bg-surface hover:bg-red-900/20 border border-white/10 hover:border-red-500/50 text-gray-400 hover:text-red-400 font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition-all"
-                        >
-                            <LogOut size={20} />
-                            Salir
-                        </button>
-                    </div>
-                </div>
-
-                {/* CÓDIGO DE INVITACIÓN */}
-                {groupData.inviteCode && (
-                    <div className="bg-surface border border-white/10 rounded-xl p-6 mb-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Código de Invitación</p>
-                                <p className="text-2xl font-black font-digital text-white tracking-wider">
-                                    {groupData.inviteCode}
-                                </p>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={copyInviteCode}
-                                    className="bg-deep hover:bg-white/5 border border-white/10 text-white p-3 rounded-lg transition-all"
-                                    title="Copiar código"
-                                >
-                                    {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
-                                </button>
-                                <button
-                                    onClick={shareGroup}
-                                    className="bg-deep hover:bg-white/5 border border-white/10 text-white p-3 rounded-lg transition-all"
-                                    title="Compartir"
-                                >
-                                    <Share2 size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* GRID: LEADERBOARD + MIEMBROS */}
-                <div className="grid lg:grid-cols-3 gap-8">
-                    {/* LEADERBOARD */}
-                    <div className="lg:col-span-2">
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
-                            <Trophy size={24} className="text-primary" />
-                            Ranking
-                        </h2>
-                        <Leaderboard
-                            users={members.map(m => ({ ...m, score: 0 }))}
-                            currentUserId={user?.uid}
-                            groupId={groupId}
-                        />
-                    </div>
-
-                    {/* LISTA DE MIEMBROS */}
-                    <div>
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
-                            <Users size={24} className="text-primary" />
-                            Miembros
-                        </h2>
-                        <div className="space-y-3">
-                            {members.map(member => (
-                                // AQUI ESTÁ EL CAMBIO: Envolver con Link
-                                <Link
-                                    key={member.uid}
-                                    href={`/profile/${member.username}?groupId=${groupId}`}
-                                    className="block transition-transform hover:scale-[1.02]"
-                                >
-                                    <MemberCard
-                                        member={member}
-                                        isOwner={member.uid === groupData.ownerId}
-                                        totalCategories={totalCategories}
-                                    />
-                                </Link>
-                            ))}
-                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
 
-// CARD DE MIEMBRO (MINIMALISTA)
-// CARD DE MIEMBRO (MODIFICADA PARA MOSTRAR CORONA AL LADO DEL NOMBRE)
-function MemberCard({ member, isOwner, totalCategories }: {
-    member: MemberProfile;
-    isOwner: boolean;
-    totalCategories: number;
-}) {
-    const progress = member.votesCount ? Math.round((member.votesCount / totalCategories) * 100) : 0;
+            {/* Contenido Principal */}
+            <main className="max-w-7xl mx-auto pb-20 px-4 md:px-6 py-12">
+                <div className="grid md:grid-cols-12 gap-8">
+                    {/* Sidebar Izquierdo */}
+                    <div className="md:col-span-4 space-y-6">
+                        {/* Card de Código de Invitación */}
+                        <div className="bg-gradient-to-br from-surface to-deep border border-white/10 p-6 rounded-2xl shadow-xl backdrop-blur-sm overflow-hidden relative group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-    return (
-        <div className="bg-surface border border-white/10 hover:border-primary/30 rounded-lg p-4 transition-all">
-            <div className="flex items-center gap-3 mb-3">
-                {/* AVATAR */}
-                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-deep border border-white/10 shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {member.photoURL ? (
-                        <img src={member.photoURL} alt={member.username} className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="w-full h-full bg-primary/20 flex items-center justify-center text-white font-bold text-sm">
-                            {member.username[0].toUpperCase()}
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2.5 bg-primary/20 rounded-lg">
+                                        <Share2 size={18} className="text-primary" />
+                                    </div>
+                                    <h3 className="font-bold text-lg">Código de Invitación</h3>
+                                </div>
+
+                                <div className="bg-black/40 p-4 rounded-xl border border-primary/20 mb-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <code className="text-2xl font-mono font-bold text-primary tracking-widest">
+                                            {group.code}
+                                        </code>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(group.code);
+                                                setCopiedCode(true);
+                                                setTimeout(() => setCopiedCode(false), 2000);
+                                            }}
+                                            className="p-2.5 hover:bg-primary/20 rounded-lg transition-colors text-gray-400 hover:text-primary"
+                                            title="Copiar código"
+                                        >
+                                            {copiedCode ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <p className="text-xs text-gray-400 text-center">Comparte este código con tus amigos</p>
+                            </div>
                         </div>
-                    )}
-                </div>
 
-                {/* INFO */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                        <p className="font-bold text-white text-sm truncate">{member.username}</p>
-                        {/* AQUI ESTÁ LA CORONA RESTAURADA */}
-                        {isOwner && (
-                            <Crown size={14} className="text-yellow-500 fill-yellow-500/20" />
+                        {/* Card de Miembros */}
+                        <div className="bg-gradient-to-br from-surface to-deep border border-white/10 p-6 rounded-2xl shadow-xl backdrop-blur-sm">
+                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                                <div className="p-2.5 bg-primary/20 rounded-lg">
+                                    <Users size={18} className="text-primary" />
+                                </div>
+                                <h3 className="font-bold text-lg">Miembros</h3>
+                                <span className="ml-auto bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold">
+                                    {members.length}
+                                </span>
+                            </div>
+
+                            <div className="space-y-2 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                                {members.map((member) => (
+                                    <Link
+                                        href={`/profile/${member.username}?groupId=${group.id}`}
+                                        key={member.uid}
+                                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors group/member cursor-pointer border border-transparent hover:border-primary/30"
+                                    >
+                                        <div className="relative w-10 h-10 flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-retro-accent/20 flex items-center justify-center overflow-hidden border border-primary/30 group-hover/member:border-primary/60 transition-colors">
+                                                {member.photoURL ? (
+                                                    <img src={member.photoURL} alt={member.username} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <User size={18} className="text-gray-400" />
+                                                )}
+                                            </div>
+                                            {member.isOwner && (
+                                                <div className="absolute -top-1 -right-1 bg-deep rounded-full p-0.5 border border-primary">
+                                                    <Crown size={11} className="text-primary fill-primary" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm truncate group-hover/member:text-primary transition-colors">
+                                                {member.username}
+                                            </p>
+                                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                {member.score} pts
+                                                {member.isOwner && <span className="text-primary text-xs">• Admin</span>}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Contenido Principal */}
+                    <div className="md:col-span-8 space-y-8">
+                        {/* Leaderboard */}
+                        <div className="bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm">
+                            <Leaderboard users={members} currentUserId={user?.uid} />
+                        </div>
+
+                        {/* Estadísticas */}
+                        {members.length > 0 && (
+                            <div className="bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm">
+                                <GroupStats
+                                    groupId={group.id}
+                                    memberIds={members.map(m => m.uid)}
+                                    variant="list"
+                                />
+                            </div>
                         )}
                     </div>
-                    <p className="text-xs text-gray-500">{member.votesCount || 0}/{totalCategories} votos</p>
                 </div>
-            </div>
-
-            {/* BARRA DE PROGRESO */}
-            <div className="w-full bg-deep rounded-full h-1.5 overflow-hidden border border-white/10">
-                <div
-                    className="bg-primary h-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                />
-            </div>
+            </main>
         </div>
     );
 }

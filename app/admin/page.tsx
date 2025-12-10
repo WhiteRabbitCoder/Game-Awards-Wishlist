@@ -205,21 +205,28 @@ export default function AdminPage() {
         }
     };
 
-    if (authLoading || loading) return <div className="min-h-screen flex items-center justify-center text-white">Cargando panel...</div>;
+    if (authLoading || loading) return (
+        <div className="min-h-screen flex items-center justify-center text-white">
+            <Loader2 className="animate-spin mr-2" /> Cargando panel...
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-8">
-            <div className="max-w-6xl mx-auto">
-                <header className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-800 pb-6 gap-4">
+        <div className="min-h-screen bg-deep text-white">
+            {/* Spacer para el navbar fijo */}
+            <div className="h-16 md:h-20" />
+
+            <div className="max-w-6xl mx-auto p-4 md:p-8">
+                <header className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-white/10 pb-6 gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold flex items-center gap-3 text-red-500">
+                        <h1 className="text-3xl font-bold flex items-center gap-3 text-primary">
                             <Shield size={32} />
                             Panel de Administración
                         </h1>
                         <p className="text-gray-400 mt-1">Define los ganadores oficiales y gestiona el evento.</p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap">
                         <button
                             onClick={saveWinners}
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg font-bold transition-colors shadow-lg shadow-blue-900/20"

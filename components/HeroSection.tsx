@@ -4,8 +4,8 @@ import HybridCountdown from "./HybridCountdown";
 import Link from "next/link";
 import { Trophy, Sparkles, ExternalLink } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { useAuth } from "@/context/AuthContext"; // 1. Importar el hook de autenticación
-import toast from "react-hot-toast"; // 2. Importar toast
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 
 // --- CONSTANTES DE IMÁGENES Y MENSAJES ---
 
@@ -37,11 +37,11 @@ const SPECIAL_MESSAGES = [
 
 
 export default function HeroSection() {
-    const { user } = useAuth(); // 4. Obtener el usuario actual
+    const { user } = useAuth();
     const eventDate = new Date("2025-12-11T19:30:00");
     const catRef = useRef<HTMLImageElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const spotlightRef = useRef<HTMLDivElement>(null); // New Ref for the spotlight
+    const spotlightRef = useRef<HTMLDivElement>(null);
 
     // Determinar qué imagen mostrar
     const catImageUrl = user?.displayName === "Danieloide" ? SPECIAL_CAT_IMAGE_URL : DEFAULT_CAT_IMAGE_URL;
@@ -60,9 +60,11 @@ export default function HeroSection() {
         // Mostrar el mensaje con un icono
         toast(randomMessage, {
             icon: '🐾',
+            duration: 5000, // <--- CAMBIO AQUÍ: Duración en milisegundos (6 segundos)
             style: {
                 background: '#333',
                 color: '#fff',
+                minWidth: '250px', // Opcional: hace que el toast sea un poco más ancho para mensajes largos
             },
         });
     };
@@ -73,12 +75,10 @@ export default function HeroSection() {
             const { clientX, clientY } = e;
             const { innerWidth, innerHeight } = window;
 
-            // 1. OPTIMIZED: Update spotlight directly without causing re-renders
             if (spotlightRef.current) {
                 spotlightRef.current.style.background = `radial-gradient(600px circle at ${clientX}px ${clientY}px, rgba(99, 102, 241, 0.07), transparent 40%)`;
             }
 
-            // 2. 3D Cat Calculations
             if (catRef.current) {
                 const rotateY = (clientX / innerWidth - 0.5) * 40;
                 const rotateX = (0.5 - clientY / innerHeight) * 40;
@@ -151,7 +151,7 @@ export default function HeroSection() {
                         alt="Wishlist Awards Logo"
                         className="w-56 md:w-96 mx-auto transition-transform duration-100 ease-out will-change-transform cursor-pointer"
                         style={{ filter: 'drop-shadow(0px 0px 20px rgba(255, 165, 0, 0.15))' }}
-                        onClick={handleCatClick} // 6. Añadir el evento onClick
+                        onClick={handleCatClick}
                     />
                 </div>
 
