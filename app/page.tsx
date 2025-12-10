@@ -66,6 +66,20 @@ export default function HomePage() {
     e.preventDefault();
     if (!user || !newGroupName.trim() || isSubmitting) return;
 
+    // --- NUEVA LÓGICA DE VALIDACIÓN ---
+    // Verificamos si ya existe un grupo con el mismo nombre (case-insensitive) creado por el usuario
+    const nameToCheck = newGroupName.trim().toLowerCase();
+    const isDuplicate = groups.some(group => 
+      group.ownerId === user.uid && 
+      group.name.toLowerCase() === nameToCheck
+    );
+
+    if (isDuplicate) {
+      toast.error("Ya tienes una liga con ese nombre");
+      return;
+    }
+    // ----------------------------------
+
     setIsSubmitting(true);
     try {
       const creatorName = user.displayName || "Usuario";
@@ -105,6 +119,19 @@ export default function HomePage() {
   const handleRenameGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!groupToRename || !newName.trim() || isSubmitting) return;
+
+    // Opcional: También podrías querer validar duplicados al renombrar
+    const nameToCheck = newName.trim().toLowerCase();
+    const isDuplicate = groups.some(group => 
+      group.ownerId === user.uid && 
+      group.id !== groupToRename.id && // Excluir el grupo actual
+      group.name.toLowerCase() === nameToCheck
+    );
+
+    if (isDuplicate) {
+      toast.error("Ya tienes otra liga con ese nombre");
+      return;
+    }
 
     setIsSubmitting(true);
     try {

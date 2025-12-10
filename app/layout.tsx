@@ -35,13 +35,8 @@ export const metadata: Metadata = {
   title: "Wishlist Awards - Predice los ganadores",
   description: "Compite con tus amigos prediciendo los ganadores de los premios de videojuegos",
   icons: {
-    icon: [
-      {
-        url: "https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png",
-        type: "image/png",
-      }
-    ],
-    apple: "https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png",
+    icon: '/favicon.png', // Apunta al archivo en la carpeta /public
+    apple: '/favicon.png', // Para dispositivos Apple
   },
 };
 
@@ -52,9 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <head>
-        <link rel="icon" href="https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png" type="image/png" />
-      </head>
+      {/* La etiqueta <head> se elimina de aquí. Next.js la genera automáticamente. */}
       {/* 4. Inyectar las variables nuevas en el body */}
       <body className={`${geistSans.variable} ${geistMono.variable} ${rubikWetPaint.variable} ${orbitron.variable} antialiased bg-deep`}>
         <AuthProvider>

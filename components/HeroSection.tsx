@@ -4,12 +4,68 @@ import HybridCountdown from "./HybridCountdown";
 import Link from "next/link";
 import { Trophy, Sparkles, ExternalLink } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext"; // 1. Importar el hook de autenticación
+import toast from "react-hot-toast"; // 2. Importar toast
+
+// --- CONSTANTES DE IMÁGENES Y MENSAJES ---
+
+// URL de la imagen por defecto
+const DEFAULT_CAT_IMAGE_URL = "https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png";
+// ⚠️ IMPORTANTE: Reemplaza la siguiente URL con la imagen especial para Danieloide
+const SPECIAL_CAT_IMAGE_URL = "https://i.postimg.cc/MHGsrTKm/Cupcake-Logo-Cat.png";
+
+// 3. Definir las listas de mensajes
+const GENERAL_MESSAGES = [
+    "Meow!",
+    "¡Haz tu predicción!",
+    "¿Quién ganará el GOTY?",
+    "¡Vota ahora!",
+    "Miau... ¿ya votaste?",
+    "El destino de los juegos está en tus manos.",
+    "Pssst... ¡no te olvides de guardar!",
+];
+
+const SPECIAL_MESSAGES = [
+    "Hey… I like you more than I usually admit.",
+    "You clicked… Cupcake, and somehow that made my day brighter.",
+    "You have this little spark that makes everything feel a bit better.",
+    "If moods had buffs, you’d definitely be one of mine, Cupcake.",
+    "Sometimes I think you’re a small plot twist in my day — the good kind.",
+    "By the way… Split Fiction totally deserves the GOTY — but you still win my personal award for best vibe.",
+    "If hearts had rankings, you’d probably be top tier without even trying.",
+];
+
 
 export default function HeroSection() {
+    const { user } = useAuth(); // 4. Obtener el usuario actual
     const eventDate = new Date("2025-12-11T19:30:00");
     const catRef = useRef<HTMLImageElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const spotlightRef = useRef<HTMLDivElement>(null); // New Ref for the spotlight
+
+    // Determinar qué imagen mostrar
+    const catImageUrl = user?.displayName === "Danieloide" ? SPECIAL_CAT_IMAGE_URL : DEFAULT_CAT_IMAGE_URL;
+
+    // 5. Crear la función para el clic
+    const handleCatClick = () => {
+        let availableMessages = [...GENERAL_MESSAGES];
+
+        // Si el usuario es "Danieloide", se añaden los mensajes especiales
+        if (user?.displayName === "Danieloide") {
+            availableMessages = [...availableMessages, ...SPECIAL_MESSAGES];
+        }
+
+        const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+
+        // Mostrar el mensaje con un icono
+        toast(randomMessage, {
+            icon: '🐾',
+            style: {
+                background: '#333',
+                color: '#fff',
+            },
+        });
+    };
 
     // --- REACTIVITY LOGIC (MOUSE + GYRO) ---
     useEffect(() => {
@@ -91,10 +147,11 @@ export default function HeroSection() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         ref={catRef}
-                        src="https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png"
+                        src={catImageUrl}
                         alt="Wishlist Awards Logo"
                         className="w-56 md:w-96 mx-auto transition-transform duration-100 ease-out will-change-transform cursor-pointer"
                         style={{ filter: 'drop-shadow(0px 0px 20px rgba(255, 165, 0, 0.15))' }}
+                        onClick={handleCatClick} // 6. Añadir el evento onClick
                     />
                 </div>
 

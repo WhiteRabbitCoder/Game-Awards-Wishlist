@@ -11,6 +11,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import VoteModal from "@/components/VoteModal";
 import CategorySection from "@/components/CategorySection";
+import { Vote } from "@/types";
 
 function VoteContent() {
     const { user, loading: authLoading } = useAuth();
@@ -19,7 +20,7 @@ function VoteContent() {
     const groupId = searchParams.get("groupId");
 
     const [categories, setCategories] = useState<Category[]>([]);
-    const [votes, setVotes] = useState<Record<string, any>>({});
+    const [votes, setVotes] = useState<Record<string, Partial<Vote>>>({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [groupName, setGroupName] = useState<string | null>(null);
@@ -56,7 +57,7 @@ function VoteContent() {
 
                 setCategories(catsData);
 
-                let votesData = {};
+                let votesData: Record<string, Partial<Vote>> = {};
 
                 if (groupId && groupId !== "global") {
                     const groupDoc = await getDoc(doc(db, "groups", groupId));
@@ -108,15 +109,18 @@ function VoteContent() {
             const currentVotes = prev[categoryId] || {};
             const nomineeId = selectedNominee.id;
 
-            const newCategoryVotes = { ...currentVotes };
+            const newCategoryVotes: Partial<Vote> = { ...currentVotes };
 
+            // Si el nominado ya está en algún puesto, lo quita de ese puesto.
             if (newCategoryVotes.firstPlace === nomineeId) newCategoryVotes.firstPlace = null;
             if (newCategoryVotes.secondPlace === nomineeId) newCategoryVotes.secondPlace = null;
             if (newCategoryVotes.thirdPlace === nomineeId) newCategoryVotes.thirdPlace = null;
 
+            // Asigna el nuevo puesto
             if (position === 1) newCategoryVotes.firstPlace = nomineeId;
             if (position === 2) newCategoryVotes.secondPlace = nomineeId;
             if (position === 3) newCategoryVotes.thirdPlace = nomineeId;
+            // Si la posición es 0 (o cualquier otro valor), simplemente se deselecciona, lo cual ya hicimos.
 
             return {
                 ...prev,
@@ -277,7 +281,7 @@ function VoteContent() {
                     onClose={() => setIsModalOpen(false)}
                     nominee={selectedNominee}
                     categoryId={selectedCategory.id}
-                    onVote={handleVote as any}
+                    onVote={handleVote}
                     currentPosition={
                         votes[selectedCategory.id]?.firstPlace === selectedNominee.id ? 1 :
                             votes[selectedCategory.id]?.secondPlace === selectedNominee.id ? 2 :
