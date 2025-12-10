@@ -11,6 +11,17 @@ interface TimeLeft {
 
 export default function HybridCountdown({ targetDate }: { targetDate: Date }) {
     const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // Detectar si es móvil
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const calculateTime = () => {
@@ -35,6 +46,28 @@ export default function HybridCountdown({ targetDate }: { targetDate: Date }) {
         return () => clearInterval(interval);
     }, [targetDate]);
 
+    // En móvil, mostrar solo las partes principales sin el divisor
+    if (isMobile) {
+        return (
+            <div className="relative flex flex-col gap-4 items-center justify-center">
+                {/* PARTE RETRO: Días y Horas */}
+                <div className="flex gap-2 items-center">
+                    <FlipCard value={timeLeft.days} label="Días" />
+                    <span className="text-4xl font-bold text-retro-accent drop-shadow-[0_4px_8px_rgba(215,119,6,0.5)]">:</span>
+                    <FlipCard value={timeLeft.hours} label="Horas" />
+                </div>
+
+                {/* PARTE DIGITAL: Minutos y Segundos */}
+                <div className="flex gap-2 items-center">
+                    <DigitalCard value={timeLeft.minutes} label="Min" />
+                    <span className="text-4xl font-bold text-cyber-neon animate-pulse drop-shadow-[0_0_15px_rgba(255,204,0,0.8)]">:</span>
+                    <DigitalCard value={timeLeft.seconds} label="Seg" />
+                </div>
+            </div>
+        );
+    }
+
+    // Desktop: diseño original sin sombra violeta
     return (
         <div className="relative flex items-center justify-center gap-2 md:gap-6">
             {/* PARTE RETRO: Días y Horas */}

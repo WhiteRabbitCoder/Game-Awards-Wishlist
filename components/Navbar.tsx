@@ -30,10 +30,11 @@ export default function Navbar() {
                         <div className="flex flex-col justify-center">
                             {/* TÍTULO: Forzamos la fuente en 'style' y mantenemos el degradado */}
                             <span 
-                                className="text-xl md:text-3xl leading-none -rotate-2 tracking-tighter bg-gradient-to-b from-yellow-100 via-yellow-400 to-yellow-700 bg-clip-text text-transparent select-none"
+                                // CAMBIO AQUÍ: Se actualizó el degradado para usar tonos naranja/ámbar/dorado horizontalmente
+                                className="text-xl md:text-3xl leading-none -rotate-2 tracking-tighter bg-gradient-to-r from-orange-700 via-amber-500 to-yellow-400 bg-clip-text text-transparent select-none"
                                 style={{
-                                    fontFamily: "'Rubik Wet Paint', cursive", // <--- LLAMADA DIRECTA AL NOMBRE DE LA FUENTE
-                                    filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,1))'
+                                    fontFamily: "'Rubik Wet Paint', cursive", 
+                                    filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,1))' // Mantenemos la sombra dura negra para contraste
                                 }}
                             >
                                 WISHLIST

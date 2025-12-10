@@ -30,9 +30,21 @@ function VoteContent() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [selectedNominee, setSelectedNominee] = useState<Nominee | null>(null);
 
+    // Protección de ruta
+    useEffect(() => {
+        if (!authLoading) {
+            if (!user) {
+                router.push("/login");
+            } else if (!user.emailVerified) {
+                router.push("/verify-email");
+            }
+        }
+    }, [user, authLoading, router]);
+
     useEffect(() => {
         const loadData = async () => {
-            if (!user) return;
+            // Solo cargar si el usuario existe y tiene email verificado
+            if (!user || !user.emailVerified) return;
 
             try {
                 const catSnap = await getDocs(collection(db, "categories"));
@@ -90,13 +102,10 @@ function VoteContent() {
             }
         };
 
-        if (!authLoading) {
-            if (!user) router.push("/login");
-            else if (!user.emailVerified) {
-                router.push("/verify-email");
-            }
+        if (!authLoading && user && user.emailVerified) {
+            loadData();
         }
-    }, [user, authLoading, router, groupId]);
+    }, [user, authLoading, groupId]);
 
     const handleNomineeClick = (category: Category, nominee: Nominee) => {
         setSelectedCategory(category);
@@ -107,20 +116,29 @@ function VoteContent() {
     const handleVote = (position: number) => {
         if (!selectedCategory || !selectedNominee) return;
 
-        const cleanVote: Partial<Vote> = {
-            firstPlace: votes[selectedCategory.id]?.firstPlace ?? undefined,
-            secondPlace: votes[selectedCategory.id]?.secondPlace ?? undefined,
-            thirdPlace: votes[selectedCategory.id]?.thirdPlace ?? undefined,
-        };
+        setVotes(prev => {
+            const categoryId = selectedCategory.id;
+            const currentVotes = prev[categoryId] || {};
+            const nomineeId = selectedNominee.id;
 
-        if (position === 1) cleanVote.firstPlace = selectedNominee.id;
-        else if (position === 2) cleanVote.secondPlace = selectedNominee.id;
-        else if (position === 3) cleanVote.thirdPlace = selectedNominee.id;
+            const newCategoryVotes: Partial<Vote> = { ...currentVotes };
 
-        setVotes(prev => ({
-            ...prev,
-            [selectedCategory.id]: cleanVote
-        }));
+            // Si el nominado ya está en algún puesto, lo quita de ese puesto.
+            if (newCategoryVotes.firstPlace === nomineeId) newCategoryVotes.firstPlace = null;
+            if (newCategoryVotes.secondPlace === nomineeId) newCategoryVotes.secondPlace = null;
+            if (newCategoryVotes.thirdPlace === nomineeId) newCategoryVotes.thirdPlace = null;
+
+            // Asigna el nuevo puesto
+            if (position === 1) newCategoryVotes.firstPlace = nomineeId;
+            if (position === 2) newCategoryVotes.secondPlace = nomineeId;
+            if (position === 3) newCategoryVotes.thirdPlace = nomineeId;
+            // Si la posición es 0 (o cualquier otro valor), simplemente se deselecciona, lo cual ya hicimos.
+
+            return {
+                ...prev,
+                [categoryId]: newCategoryVotes
+            };
+        });
 
         setIsModalOpen(false);
     };
@@ -157,13 +175,15 @@ function VoteContent() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-deep flex items-center justify-center text-white">
-                <Loader2 className="animate-spin mr-2" /> Cargando categorías...
-            </div>
-        );
-    }
+    // No mostrar nada mientras se carga la autenticación
+    if (authLoading || loading) return (
+        <div className="min-h-screen flex items-center justify-center text-white bg-deep">
+            <Loader2 className="animate-spin mr-2" /> Cargando boleta...
+        </div>
+    );
+
+    // Si no hay usuario o email no verificado, no renderizar (se redirige arriba)
+    if (!user || !user.emailVerified) return null;
 
     // Calcular progreso
     const totalCategories = categories.length;
@@ -171,22 +191,72 @@ function VoteContent() {
     const progressPercentage = totalCategories > 0 ? Math.round((completedCategories / totalCategories) * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-deep text-white">
-            <div className="h-16 md:h-20" />
-            <main className="max-w-6xl mx-auto px-4 md:px-6 py-12 pb-24">
-                {/* Header */}
-                <div className="mb-12">
-                    <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-primary mb-6 transition-colors group">
-                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        Volver
+        <div className="min-h-screen bg-gradient-to-b from-deep via-surface to-deep text-white pb-24 pt-20">
+            {groupId && groupName && (
+                <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-blue-700/30 sticky top-16 z-40 backdrop-blur-xl shadow-lg">
+                    <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl shadow-lg">
+                                {groupId === "global" ? <Trophy size={20} className="text-white" /> : <Users size={20} className="text-white" />}
+                            </div>
+                            <div>
+                                <p className="text-xs text-blue-300 uppercase font-bold tracking-wider">Editando predicciones</p>
+                                <p className="font-bold text-white text-lg leading-none">{groupName}</p>
+                            </div>
+                        </div>
+                        <Link
+                            href={groupId === "global" ? "/" : `/group/${groupId}`}
+                            className="text-sm text-blue-300 hover:text-white underline hover:no-underline transition-all"
+                        >
+                            Cancelar
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            <div className="max-w-5xl mx-auto p-4 md:p-6">
+                {!groupId && (
+                    <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
+                        <ArrowLeft size={20} /> Volver al Inicio
                     </Link>
-                    <h1 className="text-4xl md:text-5xl font-black mb-2">
-                        {groupId === "global" ? "Ranking Mundial" : groupName || "Votación"}
-                    </h1>
+                )}
+
+                {/* HEADER MEJORADO */}
+                <div className="mb-10 mt-6 border-b border-white/10 pb-8">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="bg-gradient-to-br from-yellow-500 to-orange-600 p-4 rounded-2xl shadow-2xl shadow-yellow-500/20">
+                            <Gamepad2 size={36} className="text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+                                Tus Predicciones
+                            </h1>
+                            <p className="text-gray-400 text-lg mt-1">
+                                Arma tu <span className="text-yellow-400 font-bold">Tier List</span> de ganadores
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Barra de Progreso */}
+                    <div className="bg-surface border border-white/10 rounded-xl p-4 flex items-center gap-4">
+                        <Sparkles className="text-yellow-500 flex-shrink-0" size={24} />
+                        <div className="flex-1">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-bold text-gray-300">Progreso General</span>
+                                <span className="text-sm font-bold text-yellow-400">{completedCategories}/{totalCategories}</span>
+                            </div>
+                            <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700">
+                                <div
+                                    className="bg-gradient-to-r from-yellow-500 to-orange-500 h-full transition-all duration-500 shadow-lg shadow-yellow-500/50"
+                                    style={{ width: `${progressPercentage}%` }}
+                                />
+                            </div>
+                        </div>
+                        <span className="text-2xl font-black text-yellow-400">{progressPercentage}%</span>
+                    </div>
                 </div>
 
-                {/* Categorías */}
-                <div className="space-y-6">
+                <div className="space-y-10">
                     {categories.map((cat) => (
                         <CategorySection
                             key={cat.id}
@@ -201,45 +271,55 @@ function VoteContent() {
                     ))}
                 </div>
 
-                {/* Modal de votación */}
-                <VoteModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    nominee={selectedNominee!}
-                    categoryId={selectedCategory?.id || ""}
-                    onVote={handleVote}
-                    currentPosition={
-                        selectedCategory
-                            ? votes[selectedCategory.id]?.firstPlace === selectedNominee?.id
-                                ? 1
-                                : votes[selectedCategory.id]?.secondPlace === selectedNominee?.id
-                                ? 2
-                                : votes[selectedCategory.id]?.thirdPlace === selectedNominee?.id
-                                ? 3
-                                : null
-                            : null
-                    }
-                />
-
-                {/* Botón guardar */}
-                <div className="fixed bottom-8 right-8 z-40">
+                {/* BOTÓN FLOTANTE MEJORADO */}
+                <div className="fixed bottom-6 left-0 right-0 px-4 flex justify-center z-30">
                     <button
                         onClick={saveAllVotes}
                         disabled={saving}
-                        className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 text-black font-bold py-4 px-8 rounded-xl transition-all hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:scale-105 flex items-center gap-2"
+                        className="group relative bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-600 hover:from-yellow-400 hover:to-orange-400 text-black font-black py-5 px-16 rounded-full shadow-2xl shadow-yellow-500/40 flex items-center gap-4 transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
                     >
-                        {saving ? <Loader2 className="animate-spin" /> : <Save size={20} />}
-                        {saving ? "Guardando..." : "Guardar Votos"}
+                        {saving ? (
+                            <>
+                                <Loader2 className="animate-spin" size={28} /> GUARDANDO...
+                            </>
+                        ) : (
+                            <>
+                                <Save size={28} className="group-hover:rotate-12 transition-transform" />
+                                <span className="text-xl tracking-wide">GUARDAR PICKS</span>
+                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                                    {completedCategories}
+                                </div>
+                            </>
+                        )}
                     </button>
                 </div>
-            </main>
+            </div>
+
+            {selectedCategory && selectedNominee && (
+                <VoteModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    nominee={selectedNominee}
+                    categoryId={selectedCategory.id}
+                    onVote={handleVote}
+                    currentPosition={
+                        votes[selectedCategory.id]?.firstPlace === selectedNominee.id ? 1 :
+                            votes[selectedCategory.id]?.secondPlace === selectedNominee.id ? 2 :
+                                votes[selectedCategory.id]?.thirdPlace === selectedNominee.id ? 3 : null
+                    }
+                />
+            )}
         </div>
     );
 }
 
 export default function VotePage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white"><Loader2 className="animate-spin" /></div>}>
+        <Suspense fallback={
+            <div className="min-h-screen bg-deep flex items-center justify-center text-white">
+                <Loader2 className="animate-spin mr-2" /> Cargando...
+            </div>
+        }>
             <VoteContent />
         </Suspense>
     );

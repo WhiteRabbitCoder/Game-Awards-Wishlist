@@ -174,7 +174,7 @@ export default function HeroSection() {
 
                 {/* COUNTDOWN */}
                 <div className="mb-12 inline-block relative group">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-10 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+                    {/* Removida la sombra violeta - antes: <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-10 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div> */}
                     <div className="relative">
                         <h2 className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.3em] mb-6 font-digital">
                             Tiempo restante

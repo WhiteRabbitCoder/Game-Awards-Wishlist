@@ -4,13 +4,13 @@ import { db } from "@/lib/firebase";
 import { Category, Nominee } from "@/types";
 import { collection, getDocs, query, limit } from "firebase/firestore";
 import { useEffect, useState, useRef } from "react";
-import { BarChart3, Loader2, Globe, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { BarChart3, Loader2, Globe, ChevronLeft, ChevronRight, Trophy, TrendingUp, Zap } from "lucide-react";
 
 interface Props {
     groupId: string;
     memberIds?: string[];
     isGlobal?: boolean;
-    variant?: "list" | "carousel"; // Nuevo modo de visualización
+    variant?: "list" | "carousel";
 }
 
 interface StatResult {
@@ -104,7 +104,7 @@ export default function GroupStats({ groupId, memberIds = [], isGlobal = false, 
                         }
                     });
 
-                   const topNominee = topNomineeId 
+                    const topNominee = topNomineeId
                         ? cat.nominees.find(n => n.id === topNomineeId) || null
                         : null;
                     return {
@@ -142,30 +142,51 @@ export default function GroupStats({ groupId, memberIds = [], isGlobal = false, 
 
     if (!isGlobal && memberIds.length <= 2) {
         return (
-            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-8 text-center">
-                <BarChart3 className="mx-auto text-gray-600 mb-3" size={32} />
-                <h3 className="text-lg font-bold text-gray-400">Estadísticas Bloqueadas</h3>
-                <p className="text-sm text-gray-500 mt-2">Necesitas al menos 3 miembros.</p>
+            <div className="bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl p-12 text-center backdrop-blur-sm">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                    <BarChart3 className="text-primary" size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Estadísticas Bloqueadas</h3>
+                <p className="text-sm text-gray-400">Necesitas al menos 3 miembros para ver las tendencias.</p>
             </div>
         );
     }
 
-    if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-500" /></div>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center py-12">
+                <div className="animate-spin">
+                    <Loader2 className="text-primary" size={40} />
+                </div>
+            </div>
+        );
+    }
 
-    // --- MODO CARRUSEL (NUEVO) ---
+    // --- MODO CARRUSEL ---
     if (variant === "carousel") {
         return (
-            <div className="relative group/container">
-                <div className="flex items-center justify-between mb-6 px-4">
-                    <h3 className="font-bold text-2xl flex items-center gap-2 text-white">
-                        <Globe className="text-blue-400" />
-                        Tendencia Global
-                    </h3>
+            <div className="relative">
+                <div className="flex items-center justify-between mb-8 px-2">
+                    <div>
+                        <h3 className="font-black text-2xl md:text-3xl flex items-center gap-3 text-white mb-1">
+                            <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 border border-primary/30">
+                                <TrendingUp className="text-primary" size={20} />
+                            </div>
+                            Tendencias Globales
+                        </h3>
+                        <p className="text-gray-400 text-sm">Lo que más votó la comunidad</p>
+                    </div>
                     <div className="flex gap-2">
-                        <button onClick={() => scroll('left')} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full border border-gray-700 transition-colors">
+                        <button
+                            onClick={() => scroll('left')}
+                            className="p-2.5 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 rounded-lg transition-all text-gray-400 hover:text-white"
+                        >
                             <ChevronLeft size={20} />
                         </button>
-                        <button onClick={() => scroll('right')} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full border border-gray-700 transition-colors">
+                        <button
+                            onClick={() => scroll('right')}
+                            className="p-2.5 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 rounded-lg transition-all text-gray-400 hover:text-white"
+                        >
                             <ChevronRight size={20} />
                         </button>
                     </div>
@@ -173,41 +194,67 @@ export default function GroupStats({ groupId, memberIds = [], isGlobal = false, 
 
                 <div
                     ref={scrollRef}
-                    className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-8 px-4 custom-scrollbar"
-                    style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                    className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 px-2 custom-scrollbar"
                 >
                     {stats.map((stat) => {
                         const percentage = Math.round((stat.voteCount / sampleSize) * 100);
                         return (
-                            <div key={stat.categoryId} className="min-w-[280px] md:min-w-[320px] snap-center bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-lg flex flex-col">
-                                <div className="bg-gray-900/50 p-3 border-b border-gray-700">
-                                    <h4 className="text-xs font-bold text-center text-gray-400 uppercase tracking-wider truncate">
-                                        {stat.categoryName}
-                                    </h4>
-                                </div>
+                            <div
+                                key={stat.categoryId}
+                                className="min-w-[280px] md:min-w-[320px] snap-center group"
+                            >
+                                <div className="relative h-72 rounded-2xl overflow-hidden border border-white/10 bg-gradient-to-br from-surface to-deep shadow-xl hover:shadow-2xl hover:border-primary/50 transition-all duration-300 flex flex-col">
+                                    {/* Imagen de fondo */}
+                                    <div className="absolute inset-0">
+                                        {stat.topNominee?.image ? (
+                                            <img
+                                                src={stat.topNominee.image}
+                                                alt={stat.topNominee.name}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-retro-accent/20" />
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-deep via-deep/50 to-transparent" />
+                                    </div>
 
-                                <div className="relative h-40 group">
-                                    {stat.topNominee?.image ? (
-                                        <img src={stat.topNominee.image} alt={stat.topNominee.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                                    ) : (
-                                        <div className="w-full h-full bg-gray-800" />
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
-
-                                    <div className="absolute bottom-3 left-4 right-4">
-                                        <div className="flex justify-between items-end">
-                                            <div className="flex-1 mr-2">
-                                                <p className="text-white font-bold leading-tight shadow-black drop-shadow-md line-clamp-2">
-                                                    {stat.topNominee?.name || "Sin datos"}
+                                    {/* Contenido */}
+                                    <div className="relative z-10 flex flex-col h-full p-4 justify-between">
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between">
+                                            <div className="bg-primary/20 border border-primary/30 px-3 py-1 rounded-lg backdrop-blur-sm">
+                                                <p className="text-xs font-bold text-primary uppercase tracking-wider">
+                                                    Favorito
                                                 </p>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-2xl font-bold text-blue-400">{percentage}%</span>
+                                            <div className="bg-white/10 border border-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">
+                                                <p className="text-xs font-bold text-white uppercase tracking-wider">
+                                                    {percentage}%
+                                                </p>
                                             </div>
                                         </div>
-                                        {/* Barra de progreso mini */}
-                                        <div className="w-full bg-gray-700/50 h-1.5 rounded-full mt-2 overflow-hidden backdrop-blur-sm">
-                                            <div className="bg-blue-500 h-full rounded-full" style={{ width: `${percentage}%` }} />
+
+                                        {/* Footer con nombre */}
+                                        <div>
+                                            <h4 className="text-sm text-gray-300 uppercase tracking-wider font-semibold mb-2 opacity-80">
+                                                {stat.categoryName}
+                                            </h4>
+                                            <h3 className="text-xl font-black text-white leading-tight mb-3 line-clamp-2">
+                                                {stat.topNominee?.name || "Sin datos"}
+                                            </h3>
+
+                                            {/* Barra de progreso mejorada */}
+                                            <div className="relative w-full bg-white/10 h-2 rounded-full overflow-hidden backdrop-blur-sm border border-white/10">
+                                                <div
+                                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-1000"
+                                                    style={{ width: `${percentage}%` }}
+                                                />
+                                            </div>
+
+                                            <div className="flex justify-between items-center mt-2 text-xs text-gray-400">
+                                                <span>{stat.voteCount} votos</span>
+                                                <span>de {sampleSize}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -219,28 +266,84 @@ export default function GroupStats({ groupId, memberIds = [], isGlobal = false, 
         );
     }
 
-    // --- MODO LISTA (ORIGINAL) ---
+    // --- MODO LISTA MODERNO ---
     return (
-        <div className="space-y-4">
-            <h3 className="font-bold text-xl flex items-center gap-2 mb-6">
-                <BarChart3 className="text-blue-400" />
-                Tendencias del Grupo
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {stats.map((stat) => (
-                    <div key={stat.categoryId} className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex gap-4 items-center">
-                        <div className="w-16 h-16 bg-gray-900 rounded-lg overflow-hidden flex-shrink-0 border border-gray-600">
-                            {stat.topNominee?.image && <img src={stat.topNominee.image} className="w-full h-full object-cover" />}
+        <div>
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h3 className="font-black text-2xl md:text-3xl flex items-center gap-3 text-white mb-1">
+                        <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 border border-primary/30">
+                            <TrendingUp className="text-primary" size={20} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1 truncate">{stat.categoryName}</p>
-                            <h4 className="font-bold text-white text-sm truncate mb-2">{stat.topNominee?.name || "Sin consenso"}</h4>
-                            <div className="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                                <div className="bg-blue-500 h-full rounded-full" style={{ width: `${(stat.voteCount / sampleSize) * 100}%` }} />
+                        Tendencias del Grupo
+                    </h3>
+                    <p className="text-gray-400 text-sm">Predicciones más populares</p>
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                {stats.map((stat) => {
+                    const percentage = Math.round((stat.voteCount / sampleSize) * 100);
+                    return (
+                        <div
+                            key={stat.categoryId}
+                            className="group relative bg-gradient-to-br from-surface to-deep border border-white/10 hover:border-primary/50 rounded-xl p-5 overflow-hidden transition-all hover:shadow-xl hover:shadow-primary/10"
+                        >
+                            {/* Fondo decorativo */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                            <div className="relative z-10 flex gap-4">
+                                {/* Imagen */}
+                                <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden border border-white/10 bg-deep group-hover:border-primary/30 transition-colors">
+                                    {stat.topNominee?.image ? (
+                                        <img
+                                            src={stat.topNominee.image}
+                                            alt={stat.topNominee.name}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-retro-accent/20 flex items-center justify-center">
+                                            <Trophy size={32} className="text-gray-600" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Contenido */}
+                                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex items-start justify-between mb-2">
+                                            <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">
+                                                {stat.categoryName}
+                                            </p>
+                                            <div className="bg-primary/20 text-primary px-3 py-1 rounded text-xs font-bold flex items-center gap-1 ml-2 flex-shrink-0">
+                                                <Zap size={12} fill="currentColor" />
+                                                {percentage}%
+                                            </div>
+                                        </div>
+
+                                        <h4 className="font-bold text-white text-sm mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                                            {stat.topNominee?.name || "Sin consenso"}
+                                        </h4>
+                                    </div>
+
+                                    {/* Barra de progreso */}
+                                    <div className="space-y-2">
+                                        <div className="relative w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                                            <div
+                                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
+                                                style={{ width: `${percentage}%` }}
+                                            />
+                                        </div>
+
+                                        <p className="text-xs text-gray-500">
+                                            {stat.voteCount} de {sampleSize} votos
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

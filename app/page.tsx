@@ -379,8 +379,8 @@ function GroupCard({ group, currentUserId, onRename }: { group: any, currentUser
           <button
             onClick={handleCopyCode}
             className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all border ${copied
-                ? "bg-green-500/20 border-green-500/50 text-green-400"
-                : "bg-deep border-white/10 text-gray-400 hover:text-white hover:border-white/30"
+              ? "bg-green-500/20 border-green-500/50 text-green-400"
+              : "bg-deep border-white/10 text-gray-400 hover:text-white hover:border-white/30"
               }`}
           >
             {copied ? (

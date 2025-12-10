@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles, BarChart3, Loader2, Copy, Check } from "lucide-react";
@@ -45,12 +45,14 @@ export default function GroupPage() {
         if (!loading && !user) router.push("/login");
     }, [user, loading, router]);
 
-    // Cargar datos del grupo y miembros
+    // Cargar datos del grupo y miembros (con listener en miembros)
     useEffect(() => {
+        if (!user || !groupId) return;
+
+        let unsubscribeMembers: (() => void) | null = null;
+
         const fetchGroupData = async () => {
-            if (!user || !groupId) return;
             try {
-                // 1. Si es el grupo global
                 if (groupId === "global") {
                     setGroup({ id: "global", name: "Ranking Mundial", isGlobal: true, ownerName: "Sistema" });
 
@@ -68,50 +70,40 @@ export default function GroupPage() {
                     return;
                 }
 
-                // 2. Cargar info del grupo privado
                 const groupRef = doc(db, "groups", groupId);
                 const groupSnap = await getDoc(groupRef);
                 if (!groupSnap.exists()) { router.push("/"); return; }
 
                 const groupData = groupSnap.data();
-                setGroup({ id: groupSnap.id, ...groupData });
-
-                // 3. Cargar miembros
-                const membersRef = collection(db, "groups", groupId, "members");
-                const membersSnap = await getDocs(membersRef);
-
-                // Mapa de puntajes del grupo
-                const groupScores: Record<string, number> = {};
-                membersSnap.docs.forEach(doc => {
-                    groupScores[doc.id] = doc.data().score || 0;
+                setGroup({
+                    id: groupSnap.id,
+                    ...groupData,
+                    ownerName: groupData.ownerName || "Admin" // Ahora viene de Firestore
                 });
 
-                const memberIds = membersSnap.docs.map(d => d.id);
+                const membersRef = collection(db, "groups", groupId, "members");
+                unsubscribeMembers = onSnapshot(membersRef, async (membersSnap) => {
+                    const groupScores: Record<string, number> = {};
+                    membersSnap.docs.forEach(d => { groupScores[d.id] = d.data().score || 0; });
 
-                const memberPromises = memberIds.map(async (uid) => {
-                    const userDoc = await getDoc(doc(db, "users", uid));
-                    if (userDoc.exists()) {
+                    const memberPromises = membersSnap.docs.map(async (d) => {
+                        const uid = d.id;
+                        const userDoc = await getDoc(doc(db, "users", uid));
+                        if (!userDoc.exists()) return null;
                         const userData = userDoc.data();
                         return {
-                            uid: uid,
+                            uid,
                             username: userData.username || userData.displayName || "Usuario",
                             photoURL: userData.photoURL,
                             isOwner: uid === groupData.ownerId,
-                            score: groupScores[uid] !== undefined ? groupScores[uid] : (userData.score || 0)
+                            score: groupScores[uid] ?? (userData.score || 0),
                         } as MemberProfile;
-                    }
-                    return null;
+                    });
+
+                    const resolved = (await Promise.all(memberPromises)).filter(Boolean) as MemberProfile[];
+                    resolved.sort((a, b) => (a.isOwner ? -1 : b.isOwner ? 1 : a.username.localeCompare(b.username)));
+                    setMembers(resolved);
                 });
-
-                const resolvedMembers = (await Promise.all(memberPromises)).filter(m => m !== null) as MemberProfile[];
-
-                resolvedMembers.sort((a, b) => {
-                    if (a.isOwner) return -1;
-                    if (b.isOwner) return 1;
-                    return a.username.localeCompare(b.username);
-                });
-
-                setMembers(resolvedMembers);
             } catch (error) {
                 console.error("Error cargando grupo:", error);
             } finally {
@@ -120,6 +112,7 @@ export default function GroupPage() {
         };
 
         fetchGroupData();
+        return () => { if (unsubscribeMembers) unsubscribeMembers(); };
     }, [user, groupId, router]); // Agregué router a las dependencias por buena práctica
 
     // Cálculo de estadísticas (llamado una sola vez al cargar el grupo)
@@ -304,6 +297,15 @@ export default function GroupPage() {
                         >
                             <PlayCircle size={20} className="group-hover:scale-110 transition-transform" />
                             Jugar en este Grupo
+                        </Link>
+
+                        {/* Botón para cambiar/revisar votos */}
+                        <Link
+                            href={`/vote?groupId=${group.id}`}
+                            className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl transition-all border border-white/20 hover:border-white/40 group"
+                        >
+                            <BarChart3 size={18} className="group-hover:scale-110 transition-transform" />
+                            Cambiar Votos
                         </Link>
                     </div>
                 </div>
