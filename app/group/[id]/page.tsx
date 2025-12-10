@@ -139,6 +139,7 @@ export default function GroupPage() {
 
                     return votesSnap.docs.map(voteDoc => ({
                         memberId: memberId,
+                        categoryId: voteDoc.id,  // ✅ AGREGADO: voteDoc.id es la categoryId
                         ...voteDoc.data()
                     }));
                 });
@@ -155,7 +156,6 @@ export default function GroupPage() {
                         statsMap[vote.categoryId] = {
                             categoryId: vote.categoryId,
                             totalVotes: 0,
-                            // ... otras métricas que quieras calcular
                         };
                     }
                     statsMap[vote.categoryId].totalVotes++;

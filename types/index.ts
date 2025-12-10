@@ -15,9 +15,9 @@ export interface Category {
 
 export interface Vote {
     categoryId?: string;
-    firstPlace: string | null;
-    secondPlace: string | null;
-    thirdPlace: string | null;
+    firstPlace?: string | null;
+    secondPlace?: string | null;
+    thirdPlace?: string | null;
 }
 
 export interface UserProfile {
