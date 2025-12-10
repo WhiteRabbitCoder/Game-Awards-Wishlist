@@ -130,57 +130,36 @@ export default function GroupPage() {
                 const membersRef = collection(db, "groups", groupId, "members");
                 const membersSnap = await getDocs(membersRef);
 
-                // 1. Obtener todos los votos de los miembros del grupo
-                const votesPromises = membersSnap.docs.map(async (memberDoc) => {
+                type VoteStat = { memberId: string; categoryId: string };
+
+                const votesPromises: Promise<VoteStat[]>[] = membersSnap.docs.map(async (memberDoc) => {
                     const memberId = memberDoc.id;
-                    // CORRECCIÓN: Apuntar a la colección de votos específica del grupo
                     const votesRef = collection(db, "users", memberId, "groups", groupId, "votes");
                     const votesSnap = await getDocs(votesRef);
 
                     return votesSnap.docs.map(voteDoc => ({
-                        memberId: memberId,
-                        categoryId: voteDoc.id,  // ✅ AGREGADO: voteDoc.id es la categoryId
-                        ...voteDoc.data()
+                        memberId,
+                        categoryId: voteDoc.id, // el ID del doc es la categoría
                     }));
                 });
 
-                const allVotes = (await Promise.all(votesPromises)).flat();
+                const allVotes: VoteStat[] = (await Promise.all(votesPromises)).flat();
 
-                // Filtrar solo las categorías que importan
                 const filteredVotes = allVotes.filter(vote => CATEGORY_ORDER.includes(vote.categoryId));
 
-                // Agrupar por categoría y contar votos
-                const statsMap: Record<string, any> = {};
+                const statsMap: Record<string, { categoryId: string; totalVotes: number }> = {};
                 filteredVotes.forEach(vote => {
                     if (!statsMap[vote.categoryId]) {
-                        statsMap[vote.categoryId] = {
-                            categoryId: vote.categoryId,
-                            totalVotes: 0,
-                        };
+                        statsMap[vote.categoryId] = { categoryId: vote.categoryId, totalVotes: 0 };
                     }
                     statsMap[vote.categoryId].totalVotes++;
                 });
 
-                // Convertir a array y ordenar
-                const results = Object.values(statsMap).map(stat => {
-                    const totalCategoryVotes = filteredVotes.filter(vote => vote.categoryId === stat.categoryId).length;
-                    return {
-                        ...stat,
-                        totalVotes: totalCategoryVotes
-                    };
-                });
+                const results = Object.values(statsMap);
 
-                // 2. Ordenar los resultados según el array CATEGORY_ORDER
-                results.sort((a, b) => {
-                    const indexA = CATEGORY_ORDER.indexOf(a.categoryId);
-                    const indexB = CATEGORY_ORDER.indexOf(b.categoryId);
-                    if (indexA === -1) return 1;
-                    if (indexB === -1) return -1;
-                    return indexA - indexB;
-                });
+                results.sort((a, b) => CATEGORY_ORDER.indexOf(a.categoryId) - CATEGORY_ORDER.indexOf(b.categoryId));
 
                 setStats(results.filter(r => r.totalVotes > 0));
-
             } catch (error) {
                 console.error("Error calculando estadísticas:", error);
             }
