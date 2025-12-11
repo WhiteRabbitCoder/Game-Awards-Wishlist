@@ -70,26 +70,39 @@ function VoteContent() {
 
                 setCategories(catsData);
 
+                // Intentar cargar desde localStorage primero
+                const storageKey = groupId && groupId !== "global"
+                    ? `votes_${user.uid}_${groupId}`
+                    : `votes_${user.uid}_global`;
+
+                const localVotes = localStorage.getItem(storageKey);
                 let votesData: Record<string, Partial<Vote>> = {};
 
-                if (groupId && groupId !== "global") {
-                    const groupDoc = await getDoc(doc(db, "groups", groupId));
-                    if (groupDoc.exists()) {
-                        setGroupName(groupDoc.data().name);
-                    }
+                if (localVotes) {
+                    // Si hay votos en localStorage, usarlos
+                    votesData = JSON.parse(localVotes);
+                    toast.success("Predicciones recuperadas", { duration: 2000 });
+                } else {
+                    // Si no hay en localStorage, cargar desde Firestore
+                    if (groupId && groupId !== "global") {
+                        const groupDoc = await getDoc(doc(db, "groups", groupId));
+                        if (groupDoc.exists()) {
+                            setGroupName(groupDoc.data().name);
+                        }
 
-                    const groupVotesSnap = await getDocs(collection(db, "users", user.uid, "groups", groupId, "votes"));
-                    if (!groupVotesSnap.empty) {
-                        groupVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
+                        const groupVotesSnap = await getDocs(collection(db, "users", user.uid, "groups", groupId, "votes"));
+                        if (!groupVotesSnap.empty) {
+                            groupVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
+                        } else {
+                            const globalVotesSnap = await getDocs(collection(db, "users", user.uid, "votes"));
+                            globalVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
+                            if (!globalVotesSnap.empty) toast("Se cargaron tus predicciones globales como base.");
+                        }
                     } else {
+                        if (groupId === "global") setGroupName("Ranking Mundial (Global)");
                         const globalVotesSnap = await getDocs(collection(db, "users", user.uid, "votes"));
                         globalVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
-                        if (!globalVotesSnap.empty) toast("Se cargaron tus predicciones globales como base.");
                     }
-                } else {
-                    if (groupId === "global") setGroupName("Ranking Mundial (Global)");
-                    const globalVotesSnap = await getDocs(collection(db, "users", user.uid, "votes"));
-                    globalVotesSnap.forEach(doc => { votesData[doc.id] = doc.data(); });
                 }
 
                 setVotes(votesData);
@@ -106,6 +119,17 @@ function VoteContent() {
             loadData();
         }
     }, [user, authLoading, groupId]);
+
+    // Guardar en localStorage cada vez que cambian los votos
+    useEffect(() => {
+        if (!user || authLoading || loading) return;
+
+        const storageKey = groupId && groupId !== "global"
+            ? `votes_${user.uid}_${groupId}`
+            : `votes_${user.uid}_global`;
+
+        localStorage.setItem(storageKey, JSON.stringify(votes));
+    }, [votes, user, groupId, authLoading, loading]);
 
     const handleNomineeClick = (category: Category, nominee: Nominee) => {
         setSelectedCategory(category);
@@ -162,6 +186,13 @@ function VoteContent() {
             });
 
             await batch.commit();
+
+            // Limpiar localStorage después de guardar exitosamente
+            const storageKey = groupId && groupId !== "global"
+                ? `votes_${user.uid}_${groupId}`
+                : `votes_${user.uid}_global`;
+            localStorage.removeItem(storageKey);
+
             toast.success("¡Predicciones guardadas!", { id: toastId });
 
             if (groupId && groupId !== "global") router.push(`/group/${groupId}`);

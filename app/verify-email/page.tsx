@@ -88,8 +88,8 @@ export default function VerifyEmailPage() {
             {/* Mensaje de estado */}
             {message && (
               <div className={`p-4 rounded-xl mb-6 text-sm flex gap-3 items-start border backdrop-blur-sm ${message.includes("✓")
-                  ? "bg-green-500/10 border-green-500/30 text-green-300"
-                  : "bg-blue-500/10 border-blue-500/30 text-blue-300"
+                ? "bg-green-500/10 border-green-500/30 text-green-300"
+                : "bg-blue-500/10 border-blue-500/30 text-blue-300"
                 }`}>
                 {message.includes("✓") ? (
                   <CheckCircle size={18} className="flex-shrink-0 mt-0.5" />
@@ -105,7 +105,7 @@ export default function VerifyEmailPage() {
               <button
                 onClick={checkVerification}
                 disabled={checkingVerification}
-                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-4 px-6 rounded-xl transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.3)] hover:scale-105 flex items-center justify-center gap-2 group"
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all hover:shadow-[0_0_25px_rgba(234,179,8,0.3)] hover:scale-105 flex items-center justify-center gap-2 group"
               >
                 {checkingVerification ? (
                   <>
