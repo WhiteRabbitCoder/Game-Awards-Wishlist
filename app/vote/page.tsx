@@ -14,7 +14,7 @@ import CategorySection from "@/components/CategorySection";
 import { Vote } from "@/types";
 
 // Fecha límite de votación
-const VOTING_DEADLINE = new Date("2025-12-11T19:45:00-05:00");
+const VOTING_DEADLINE = new Date("2025-12-11T20:00:00-05:00");
 
 function VoteContent() {
     const { user, loading: authLoading } = useAuth();
