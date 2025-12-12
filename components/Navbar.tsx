@@ -17,7 +17,7 @@ export default function Navbar() {
             <header className="fixed top-0 w-full z-40 border-b border-white/5 bg-deep/90 backdrop-blur-md transition-all duration-300 h-16 md:h-20 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
                 <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
 
-                   {/* IZQUIERDA: LOGO GOLD & GRUNGE FINAL */}
+                    {/* IZQUIERDA: LOGO GOLD & GRUNGE FINAL */}
                     <Link href="/" className="flex items-center gap-2 md:gap-3 group relative z-50 shrink-0">
                         <div className="relative w-9 h-9 md:w-14 md:h-14 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 flex-shrink-0">
                             <img
@@ -28,18 +28,16 @@ export default function Navbar() {
                         </div>
 
                         <div className="flex flex-col justify-center">
-                            {/* TÍTULO: Forzamos la fuente en 'style' y mantenemos el degradado */}
-                            <span 
-                                // CAMBIO AQUÍ: Se actualizó el degradado para usar tonos naranja/ámbar/dorado horizontalmente
+                            <span
                                 className="text-xl md:text-3xl leading-none -rotate-2 tracking-tighter bg-gradient-to-r from-orange-700 via-amber-500 to-yellow-400 bg-clip-text text-transparent select-none"
                                 style={{
-                                    fontFamily: "'Rubik Wet Paint', cursive", 
-                                    filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,1))' // Mantenemos la sombra dura negra para contraste
+                                    fontFamily: "'Rubik Wet Paint', cursive",
+                                    filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,1))'
                                 }}
                             >
                                 WISHLIST
                             </span>
-                            
+
                             <span className="hidden sm:block text-[10px] font-digital text-gray-400 tracking-[0.3em] ml-1 group-hover:text-primary transition-colors border-t border-gray-700/50 mt-0.5 pt-0.5 w-full text-center">
                                 GAME AWARDS_2025
                             </span>
@@ -64,7 +62,11 @@ export default function Navbar() {
                     {/* DERECHA: PERFIL */}
                     {user ? (
                         <div className="flex items-center gap-3 md:gap-5">
-                            <div className="flex items-center gap-3 pl-4 pr-1.5 py-1.5 bg-gradient-to-r from-black/60 to-black/30 border border-white/5 rounded-full hover:border-white/20 transition-colors group/profile">
+                            {/* CAMBIO: Convertir el perfil en Link */}
+                            <Link
+                                href="/settings"
+                                className="flex items-center gap-3 pl-4 pr-1.5 py-1.5 bg-gradient-to-r from-black/60 to-black/30 border border-white/5 rounded-full hover:border-white/20 transition-all group/profile cursor-pointer"
+                            >
                                 <div className="text-right hidden sm:block">
                                     <p className="text-[8px] text-retro-accent uppercase font-digital tracking-[0.2em] leading-none mb-0.5 opacity-70 group-hover/profile:opacity-100 transition-opacity">
                                         PLAYER_ID
@@ -82,7 +84,7 @@ export default function Navbar() {
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </Link>
 
                             <div className="flex items-center border-l border-white/10 pl-3 md:pl-5 gap-3 md:gap-4">
                                 <Link href="/settings" className="text-gray-500 hover:text-white transition-colors transform hover:rotate-45 duration-300">

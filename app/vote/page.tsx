@@ -6,13 +6,15 @@ import { Category, Nominee } from "@/types";
 import { collection, doc, getDoc, getDocs, writeBatch } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { ArrowLeft, Save, Trophy, Users, Gamepad2, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Trophy, Users, Gamepad2, Loader2, Sparkles, Lock, Clock } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import VoteModal from "@/components/VoteModal";
 import CategorySection from "@/components/CategorySection";
 import { Vote } from "@/types";
 
+// Fecha límite de votación
+const VOTING_DEADLINE = new Date("2025-12-11T19:45:00-05:00");
 
 function VoteContent() {
     const { user, loading: authLoading } = useAuth();
@@ -30,6 +32,9 @@ function VoteContent() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [selectedNominee, setSelectedNominee] = useState<Nominee | null>(null);
 
+    // Verificar si las votaciones están cerradas
+    const votingClosed = new Date() > VOTING_DEADLINE;
+
     // Protección de ruta
     useEffect(() => {
         if (!authLoading) {
@@ -37,14 +42,17 @@ function VoteContent() {
                 router.push("/login");
             } else if (!user.emailVerified) {
                 router.push("/verify-email");
+            } else if (votingClosed) {
+                // Redirigir si las votaciones están cerradas
+                toast.error("Las votaciones han cerrado");
+                router.push("/");
             }
         }
-    }, [user, authLoading, router]);
+    }, [user, authLoading, router, votingClosed]);
 
     useEffect(() => {
         const loadData = async () => {
-            // Solo cargar si el usuario existe y tiene email verificado
-            if (!user || !user.emailVerified) return;
+            if (!user || !user.emailVerified || votingClosed) return;
 
             try {
                 const catSnap = await getDocs(collection(db, "categories"));
@@ -70,7 +78,6 @@ function VoteContent() {
 
                 setCategories(catsData);
 
-                // Intentar cargar desde localStorage primero
                 const storageKey = groupId && groupId !== "global"
                     ? `votes_${user.uid}_${groupId}`
                     : `votes_${user.uid}_global`;
@@ -79,11 +86,9 @@ function VoteContent() {
                 let votesData: Record<string, Partial<Vote>> = {};
 
                 if (localVotes) {
-                    // Si hay votos en localStorage, usarlos
                     votesData = JSON.parse(localVotes);
                     toast.success("Predicciones recuperadas", { duration: 2000 });
                 } else {
-                    // Si no hay en localStorage, cargar desde Firestore
                     if (groupId && groupId !== "global") {
                         const groupDoc = await getDoc(doc(db, "groups", groupId));
                         if (groupDoc.exists()) {
@@ -115,30 +120,30 @@ function VoteContent() {
             }
         };
 
-        if (!authLoading && user && user.emailVerified) {
+        if (!authLoading && user && user.emailVerified && !votingClosed) {
             loadData();
         }
-    }, [user, authLoading, groupId]);
+    }, [user, authLoading, groupId, votingClosed]);
 
-    // Guardar en localStorage cada vez que cambian los votos
     useEffect(() => {
-        if (!user || authLoading || loading) return;
+        if (!user || authLoading || loading || votingClosed) return;
 
         const storageKey = groupId && groupId !== "global"
             ? `votes_${user.uid}_${groupId}`
             : `votes_${user.uid}_global`;
 
         localStorage.setItem(storageKey, JSON.stringify(votes));
-    }, [votes, user, groupId, authLoading, loading]);
+    }, [votes, user, groupId, authLoading, loading, votingClosed]);
 
     const handleNomineeClick = (category: Category, nominee: Nominee) => {
+        if (votingClosed) return;
         setSelectedCategory(category);
         setSelectedNominee(nominee);
         setIsModalOpen(true);
     };
 
     const handleVote = (position: number) => {
-        if (!selectedCategory || !selectedNominee) return;
+        if (!selectedCategory || !selectedNominee || votingClosed) return;
 
         setVotes(prev => {
             const categoryId = selectedCategory.id;
@@ -147,16 +152,13 @@ function VoteContent() {
 
             const newCategoryVotes: Partial<Vote> = { ...currentVotes };
 
-            // Si el nominado ya está en algún puesto, lo quita de ese puesto.
             if (newCategoryVotes.firstPlace === nomineeId) newCategoryVotes.firstPlace = null;
             if (newCategoryVotes.secondPlace === nomineeId) newCategoryVotes.secondPlace = null;
             if (newCategoryVotes.thirdPlace === nomineeId) newCategoryVotes.thirdPlace = null;
 
-            // Asigna el nuevo puesto
             if (position === 1) newCategoryVotes.firstPlace = nomineeId;
             if (position === 2) newCategoryVotes.secondPlace = nomineeId;
             if (position === 3) newCategoryVotes.thirdPlace = nomineeId;
-            // Si la posición es 0 (o cualquier otro valor), simplemente se deselecciona, lo cual ya hicimos.
 
             return {
                 ...prev,
@@ -168,7 +170,7 @@ function VoteContent() {
     };
 
     const saveAllVotes = async () => {
-        if (!user) return;
+        if (!user || votingClosed) return;
         setSaving(true);
         const toastId = toast.loading("Guardando predicciones...");
 
@@ -187,7 +189,6 @@ function VoteContent() {
 
             await batch.commit();
 
-            // Limpiar localStorage después de guardar exitosamente
             const storageKey = groupId && groupId !== "global"
                 ? `votes_${user.uid}_${groupId}`
                 : `votes_${user.uid}_global`;
@@ -216,13 +217,48 @@ function VoteContent() {
     // Si no hay usuario o email no verificado, no renderizar (se redirige arriba)
     if (!user || !user.emailVerified) return null;
 
+    // Pantalla de votaciones cerradas
+    if (votingClosed) {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-deep via-surface to-deep text-white flex items-center justify-center p-4">
+                <div className="max-w-2xl w-full bg-gradient-to-br from-surface to-deep rounded-3xl border border-white/10 shadow-2xl p-12 text-center">
+                    <div className="bg-red-500/10 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-red-500/30">
+                        <Lock size={64} className="text-red-400" />
+                    </div>
+
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
+                        Votaciones Cerradas
+                    </h1>
+
+                    <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                        Las predicciones cerraron el <span className="text-white font-bold">11 de diciembre a las 8:00 PM</span>.
+                        <br />¡Gracias por participar en los Wishlist Awards 2025!
+                    </p>
+
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-8">
+                        <Clock size={16} />
+                        <span>Los resultados se revelarán pronto</span>
+                    </div>
+
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-orange-500 text-black font-black px-8 py-4 rounded-xl hover:scale-105 transition-transform shadow-lg shadow-primary/30"
+                    >
+                        <Trophy size={24} />
+                        Ver Rankings
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     // Calcular progreso
     const totalCategories = categories.length;
     const completedCategories = Object.values(votes).filter(v => v.firstPlace).length;
     const progressPercentage = totalCategories > 0 ? Math.round((completedCategories / totalCategories) * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-deep via-surface to-deep text-white pb-24 pt-20">
+        <div className="min-h-screen bg-gradient-to-b from-deep via-surface to-deep text-white pb-32 md:pb-24 pt-20">
             {groupId && groupName && (
                 <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-b border-blue-700/30 sticky top-16 z-40 backdrop-blur-xl shadow-lg">
                     <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -303,7 +339,7 @@ function VoteContent() {
                 </div>
 
                 {/* BOTÓN FLOTANTE MEJORADO */}
-                <div className="fixed bottom-6 left-0 right-0 px-4 flex justify-center z-30">
+                <div className="fixed left-0 right-0 px-4 flex justify-center z-30 bottom-24 md:bottom-6">
                     <button
                         onClick={saveAllVotes}
                         disabled={saving}

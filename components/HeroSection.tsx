@@ -1,11 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import HybridCountdown from "./HybridCountdown";
-import Link from "next/link";
-import { Trophy, Sparkles, ExternalLink } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ExternalLink, Sparkles, Trophy } from "lucide-react";
+import { useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 // --- CONSTANTES DE IMÁGENES Y MENSAJES ---
 
@@ -38,10 +39,11 @@ const SPECIAL_MESSAGES = [
 
 export default function HeroSection() {
     const { user } = useAuth();
-    const eventDate = new Date("2025-12-11T19:30:00");
+    const eventDate = new Date("2025-12-11T19:30:00-05:00");
     const catRef = useRef<HTMLImageElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const spotlightRef = useRef<HTMLDivElement>(null);
+    const [isEventLive, setIsEventLive] = useState(false);
 
     // Determinar qué imagen mostrar
     const catImageUrl = user?.displayName === "Danieloide" ? SPECIAL_CAT_IMAGE_URL : DEFAULT_CAT_IMAGE_URL;
@@ -112,11 +114,27 @@ export default function HeroSection() {
         };
     }, []);
 
+    useEffect(() => {
+        const checkIfLive = () => {
+            setIsEventLive(new Date() > eventDate);
+        };
+        checkIfLive();
+        const interval = setInterval(checkIfLive, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Determinar qué mensaje mostrar
+    let availableMessages = [...GENERAL_MESSAGES];
+
+    // Si el usuario es "Danieloide", se añaden los mensajes especiales
+    if (user?.displayName === "Danieloide") {
+        availableMessages = [...availableMessages, ...SPECIAL_MESSAGES];
+    }
+
+    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+
     return (
-        <div
-            ref={containerRef}
-            className="relative min-h-screen flex flex-col items-center justify-center bg-deep overflow-hidden pt-28 pb-10"
-        >
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-deep via-surface to-deep pt-20 pb-10">
             {/* --- REACTIVE BACKGROUND --- */}
 
             {/* 1. Cyberpunk Grid */}
@@ -177,32 +195,26 @@ export default function HeroSection() {
                     {/* Removida la sombra violeta - antes: <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-10 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div> */}
                     <div className="relative">
                         <h2 className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.3em] mb-6 font-digital">
-                            Tiempo restante
+                            {isEventLive ? "En vivo ahora" : "Tiempo restante"}
                         </h2>
                         <HybridCountdown targetDate={eventDate} />
                     </div>
                 </div>
 
-                {/* TGA BUTTON */}
-                <div className="mb-12 flex justify-center">
-                    <a
-                        href="https://thegameawards.com/nominees"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative inline-flex items-center justify-center gap-3 bg-[#0372a6] hover:bg-[#025a85] text-white font-black py-3 px-6 md:py-4 md:px-8 rounded-xl text-base md:text-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(3,114,166,0.3)] hover:shadow-[0_0_30px_rgba(3,114,166,0.6)] overflow-hidden ring-1 ring-white/10"
-                    >
-                        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12" />
-
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src="https://cdn.thegameawards.com//frontend/svgs/tga_icon_2024.svg"
-                            alt="TGA Logo"
-                            className="w-6 h-6 md:w-8 md:h-8 brightness-0 invert"
-                        />
-                        <span>VOTO OFICIAL TGA</span>
-                        <ExternalLink size={20} className="opacity-70 group-hover:translate-x-1 transition-transform" />
-                    </a>
-                </div>
+                {/* BOTÓN TGA - Solo visible si NO está en vivo */}
+                {!isEventLive && (
+                    <div className="flex justify-center mb-8">
+                        <a
+                            href="https://thegameawards.com/brackets"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 shadow-lg shadow-blue-500/30 border border-blue-400/30"
+                        >
+                            <span className="text-lg">Voto Oficial TGA</span>
+                            <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
+                        </a>
+                    </div>
+                )}
 
                 {/* CTA BUTTONS */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pb-20">
@@ -226,6 +238,6 @@ export default function HeroSection() {
                 </div>
 
             </div>
-        </div>
+        </section>
     );
 }
