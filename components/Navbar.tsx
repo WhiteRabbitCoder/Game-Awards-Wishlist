@@ -1,12 +1,13 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { Settings, LogOut, Trophy, Home, Users, User, Search } from "lucide-react";
+import { Settings, LogOut, Trophy, Home, Users, User, Search, Bell } from "lucide-react";
 import UserSearchModal from "./UserSearchModal";
+import NotificationsModal from "./NotificationsModal";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function Navbar() {
@@ -14,8 +15,10 @@ export default function Navbar() {
     const pathname = usePathname();
     const [username, setUsername] = useState<string | null>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
 
-    // Cargar el username del usuario desde Firestore
+    // Cargar username y escuchar notificaciones
     useEffect(() => {
         const fetchUsername = async () => {
             if (user) {
@@ -30,6 +33,15 @@ export default function Navbar() {
             }
         };
         fetchUsername();
+
+        if (user) {
+            // Escuchar solicitudes pendientes
+            const q = query(collection(db, "users", user.uid, "friend_requests"));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                setNotificationCount(snapshot.size);
+            });
+            return () => unsubscribe();
+        }
     }, [user]);
 
     const isActive = (path: string) => pathname === path ? "text-primary drop-shadow-[0_0_8px_rgba(234,179,8,0.6)] scale-110" : "text-gray-500 hover:text-white";
@@ -117,6 +129,17 @@ export default function Navbar() {
                             </Link>
 
                             <div className="flex items-center border-l border-white/10 pl-3 md:pl-5 gap-3 md:gap-4">
+                                <button
+                                    onClick={() => setIsNotificationsOpen(true)}
+                                    className="relative text-gray-500 hover:text-white transition-colors transform hover:scale-110 duration-200"
+                                >
+                                    <Bell size={20} />
+                                    {notificationCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-in zoom-in">
+                                            {notificationCount}
+                                        </span>
+                                    )}
+                                </button>
                                 <button onClick={() => setIsSearchOpen(true)} className="text-gray-500 hover:text-white transition-colors transform hover:scale-110 duration-200" title="Buscar Usuarios">
                                     <Search size={20} />
                                 </button>
@@ -161,6 +184,7 @@ export default function Navbar() {
             )}
 
             <UserSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+            {isNotificationsOpen && <NotificationsModal onClose={() => setIsNotificationsOpen(false)} />}
         </>
     );
 }

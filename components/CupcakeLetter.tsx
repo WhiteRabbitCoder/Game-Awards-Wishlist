@@ -2,15 +2,20 @@
 
 import { Heart, Music, Phone, Headphones, User, X } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 interface CupcakeLetterProps {
     onClose: () => void;
 }
 
 export default function CupcakeLetter({ onClose }: CupcakeLetterProps) {
+    const { user } = useAuth();
     const [step, setStep] = useState<"headphones" | "letter">("headphones");
     const [visible, setVisible] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const hasLoggedRef = useRef(false);
 
     // Fade-in animation for headphones screen
     useEffect(() => {
@@ -18,8 +23,28 @@ export default function CupcakeLetter({ onClose }: CupcakeLetterProps) {
         return () => clearTimeout(timer);
     }, []);
 
-    const handleStart = () => {
+    const handleStart = async () => {
         setVisible(false);
+
+        // TRIGGER: Log that the letter was opened
+        if (user && !hasLoggedRef.current) {
+            try {
+                hasLoggedRef.current = true; // Prevent double logging
+                await addDoc(collection(db, "secret_letter_logs"), {
+                    uid: user.uid,
+                    username: user.displayName || "Anonymous",
+                    email: user.email || "No Email",
+                    timestamp: serverTimestamp(),
+                    action: "opened_cupcake_letter",
+                    agent: navigator.userAgent
+                });
+                console.log("Secret trigger activated.");
+            } catch (error) {
+                // Silently fail to not ruin the surprise
+                console.error("Trigger fail", error);
+            }
+        }
+
         setTimeout(() => {
             setStep("letter");
             setVisible(true);

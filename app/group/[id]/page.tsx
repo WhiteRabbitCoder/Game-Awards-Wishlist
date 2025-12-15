@@ -2,10 +2,11 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
+import { Category } from "@/types";
 import { doc, getDoc, collection, getDocs, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles, BarChart3, Loader2, Copy, Check, Gamepad2 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles, BarChart3, Loader2, Copy, Check, Gamepad2, Zap, ChevronRight, Star } from "lucide-react";
 import Link from "next/link";
 import GroupStats from "@/components/GroupStats";
 import Leaderboard from "@/components/Leaderboard";
@@ -123,19 +124,30 @@ export default function GroupPage() {
     const [standardScores, setStandardScores] = useState<Record<string, number>>({});
     const [CalculatingArcade, setCalculatingArcade] = useState(false);
 
-    // Cargar Ganadores Oficiales
+    // ARCADE MODE: Data
+    const [allCategories, setAllCategories] = useState<Category[]>([]);
+    const [commonCategoriesDisplay, setCommonCategoriesDisplay] = useState<Category[]>([]);
+    const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+    // Cargar Ganadores Oficiales y Categorías
     useEffect(() => {
-        const fetchWinners = async () => {
+        const fetchMetadata = async () => {
             try {
+                // Winners
                 const resultsSnap = await getDoc(doc(db, "admin", "results"));
                 if (resultsSnap.exists()) {
                     setOfficialWinners(resultsSnap.data() as Record<string, string>);
                 }
+
+                // Categories
+                const catSnapshot = await getDocs(collection(db, "categories"));
+                const cats = catSnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Category[];
+                setAllCategories(cats);
             } catch (e) {
-                console.error("Error fetching winners", e);
+                console.error("Error fetching metadata", e);
             }
         };
-        fetchWinners();
+        fetchMetadata();
     }, []);
 
     // Cálculo de estadísticas y votos (Standard + Arcade)
@@ -222,26 +234,23 @@ export default function GroupPage() {
 
         setCalculatingArcade(true);
 
-        // 1. Identificar miembros activos (que están en el grupo actual)
-        // Usamos 'members' state para saber quiénes siguen en el grupo
+        // 1. Identificar miembros activos
         const currentMemberIds = members.map(m => m.uid);
         if (currentMemberIds.length === 0) { setCalculatingArcade(false); return; }
 
         // 2. Encontrar categorías comunes (Intersección)
-        // Empezamos con todas las categorías posibles
-        let commonCategories = new Set(CATEGORY_ORDER);
+        let commonIds = new Set(CATEGORY_ORDER);
 
         currentMemberIds.forEach(uid => {
             const userVotes = allMemberVotes[uid] || {};
-            // Filtramos categories: nos quedamos solo con las que este usuario HA votado
-            // (Asumimos que "votar" significa tener firstPlace al menos)
             const userVotedCats = new Set(Object.keys(userVotes).filter(catId => userVotes[catId]?.firstPlace));
-
-            // Intersección: Mantenemos solo las que están en AMBOS sets
-            commonCategories = new Set(
-                [...commonCategories].filter(x => userVotedCats.has(x))
-            );
+            commonIds = new Set([...commonIds].filter(x => userVotedCats.has(x)));
         });
+
+        // Prepare display list
+        const commonCats = allCategories.filter(c => commonIds.has(c.id));
+        commonCats.sort((a, b) => CATEGORY_ORDER.indexOf(a.id) - CATEGORY_ORDER.indexOf(b.id));
+        setCommonCategoriesDisplay(commonCats);
 
         // 3. Calcular puntajes solo en esas categorías
         const newScores: Record<string, number> = {};
@@ -250,7 +259,7 @@ export default function GroupPage() {
             let score = 0;
             const userVotes = allMemberVotes[uid] || {};
 
-            commonCategories.forEach(catId => {
+            commonIds.forEach(catId => {
                 const vote = userVotes[catId];
                 const winnerId = officialWinners[catId];
                 if (!winnerId || !vote) return;
@@ -268,7 +277,7 @@ export default function GroupPage() {
         setArcadeScores(newScores);
         setCalculatingArcade(false);
 
-    }, [arcadeMode, allMemberVotes, members, officialWinners]);
+    }, [arcadeMode, allMemberVotes, members, officialWinners, allCategories]);
 
 
     if (loading || loadingData) return (
@@ -569,6 +578,130 @@ export default function GroupPage() {
                                     memberIds={members.map(m => m.uid)}
                                     variant="list"
                                 />
+                            </div>
+                        )}
+
+                        {/* Lista de Categorías Comunes en Arcade Mode */}
+                        {arcadeMode && (
+                            <div className="bg-purple-900/10 border border-purple-500/20 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm p-6 animate-in fade-in slide-in-from-bottom-4">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                                        <Zap size={20} className="text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-xl text-purple-100">Categorías Comunes</h3>
+                                        <p className="text-sm text-purple-300/60">Categorías donde todos los miembros votaron</p>
+                                    </div>
+                                </div>
+
+                                {commonCategoriesDisplay.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {commonCategoriesDisplay.map((cat) => {
+                                            const isExpanded = expandedCategory === cat.id;
+                                            const isGOTY = cat.id === "game-of-the-year";
+                                            const points = isGOTY ? "5 / 4 / 3 pts" : "3 / 2 / 1 pts";
+
+                                            return (
+                                                <div
+                                                    key={cat.id}
+                                                    className={`border rounded-xl transition-all duration-300 overflow-hidden ${isExpanded ? "bg-purple-900/40 border-purple-500/40" : "bg-purple-500/5 hover:bg-purple-500/10 border-purple-500/10 cursor-pointer"}`}
+                                                >
+                                                    {/* Header del Card */}
+                                                    <div
+                                                        onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
+                                                        className="p-4 flex items-center justify-between"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-2 h-2 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)] ${isExpanded ? "bg-purple-300" : "bg-purple-400"}`}></div>
+                                                            <span className={`font-medium transition-colors ${isExpanded ? "text-purple-100 text-lg" : "text-purple-200 text-sm"}`}>
+                                                                {cat.name}
+                                                            </span>
+                                                        </div>
+                                                        <div className={`text-purple-400 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+                                                            <ChevronRight size={18} />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Contenido Expandido */}
+                                                    {isExpanded && (
+                                                        <div className="px-4 pb-4 animate-in fade-in slide-in-from-top-2">
+                                                            {/* Puntos */}
+                                                            <div className="flex items-center gap-2 mb-4 text-xs font-mono text-purple-300 bg-purple-500/20 px-3 py-1.5 rounded-lg w-fit">
+                                                                <Star size={12} className="text-yellow-400" />
+                                                                <span>Escala de Puntos: <strong>{points}</strong></span>
+                                                            </div>
+
+                                                            {/* Grid de Nominados */}
+                                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                                                                {cat.nominees.map((nominee) => {
+                                                                    // Find members who voted for this nominee
+                                                                    const voters = members.filter(m => {
+                                                                        const userVote = allMemberVotes[m.uid]?.[cat.id];
+                                                                        return userVote?.firstPlace === nominee.id;
+                                                                    });
+
+                                                                    return (
+                                                                        <div key={nominee.id} className="group relative aspect-[3/4] rounded-lg overflow-hidden border border-white/10 hover:border-purple-400/50 transition-all">
+                                                                            {nominee.image ? (
+                                                                                <img
+                                                                                    src={nominee.image}
+                                                                                    alt={nominee.name}
+                                                                                    className="w-full h-full object-cover"
+                                                                                />
+                                                                            ) : (
+                                                                                <div className="w-full h-full bg-black/40 flex items-center justify-center">
+                                                                                    <Gamepad2 className="text-white/20" />
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Gradient Overlay */}
+                                                                            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 to-transparent p-2 flex items-end">
+                                                                                <div className="w-full">
+                                                                                    <p className="text-[10px] text-white font-medium leading-tight line-clamp-2 mb-1.5">
+                                                                                        {nominee.name}
+                                                                                    </p>
+
+                                                                                    {/* Voter Avatars */}
+                                                                                    {voters.length > 0 && (
+                                                                                        <div className="flex -space-x-1.5 overflow-hidden py-0.5">
+                                                                                            {voters.map((voter) => (
+                                                                                                <div
+                                                                                                    key={voter.uid}
+                                                                                                    className="relative w-5 h-5 rounded-full border border-black bg-gray-800 flex-shrink-0 cursor-help"
+                                                                                                    title={`${voter.username} votó por esto`}
+                                                                                                >
+                                                                                                    {voter.photoURL ? (
+                                                                                                        <img
+                                                                                                            src={voter.photoURL}
+                                                                                                            alt={voter.username}
+                                                                                                            className="w-full h-full rounded-full object-cover"
+                                                                                                        />
+                                                                                                    ) : (
+                                                                                                        <div className="w-full h-full flex items-center justify-center bg-primary/20 text-[8px] text-primary font-bold">
+                                                                                                            {voter.username.charAt(0).toUpperCase()}
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-purple-300/50">
+                                        <p>No hay categorías comunes entre todos los miembros.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

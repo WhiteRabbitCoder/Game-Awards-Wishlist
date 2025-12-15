@@ -2,12 +2,13 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, onSnapshot } from "firebase/firestore";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, User, Trophy, Target, TrendingUp, Loader2, Zap, Minus, HelpCircle, Medal, Crown } from "lucide-react";
+import { ArrowLeft, User, Trophy, Target, TrendingUp, Loader2, Zap, Minus, HelpCircle, Medal, Crown, UserPlus, UserCheck, UserX, Clock, Users } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend, FriendStatus } from "@/lib/social";
 
 const CATEGORY_ORDER = [
     "game-of-the-year", "best-game-direction", "best-narrative", "best-art-direction",
@@ -24,6 +25,7 @@ interface UserProfile {
     username: string;
     photoURL?: string;
     displayName?: string;
+    friendsCount?: number;
 }
 
 interface Nominee {
@@ -56,14 +58,23 @@ export default function ProfilePage() {
     const [stats, setStats] = useState({ matches: 0, total: 0, percentage: 0 });
     const [ownStats, setOwnStats] = useState({ correctGuesses: 0, totalPredictions: 0, accuracy: 0 });
 
+    // Social State
+    const [friendStatus, setFriendStatus] = useState<FriendStatus>('none');
+    const [processingSocial, setProcessingSocial] = useState(false);
+
     useEffect(() => {
         const loadProfile = async () => {
             if (!user) {
-                router.push("/login");
-                return;
+                // If not logged in, we might still want to show public profile, 
+                // but for now redirect per existing logic or allow read-only.
+                // Existing logic redirects to login:
+                // router.push("/login");
+                // return;
+                // Let's allow loading basic data if username exists
             }
 
             try {
+                // 1. Get Target User Profile
                 const usersQuery = query(collection(db, "users"), where("username", "==", username));
                 const usersSnap = await getDocs(usersQuery);
 
@@ -74,16 +85,46 @@ export default function ProfilePage() {
                 }
 
                 const targetUserDoc = usersSnap.docs[0];
-                const targetData = targetUserDoc.data();
                 const targetUid = targetUserDoc.id;
 
-                setTargetProfile({
-                    uid: targetUid,
-                    username: targetData.username,
-                    photoURL: targetData.photoURL,
-                    displayName: targetData.displayName
+                // Realtime listener for profile data (friendsCount)
+                const unsubProfile = onSnapshot(doc(db, "users", targetUid), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const d = docSnap.data();
+                        setTargetProfile({
+                            uid: targetUid,
+                            username: d.username,
+                            photoURL: d.photoURL,
+                            displayName: d.displayName,
+                            friendsCount: d.friendsCount || 0
+                        });
+                    }
                 });
 
+                // 2. Check Friend Status (if logged in)
+                if (user && user.uid !== targetUid) {
+                    // Check if friends
+                    const friendDoc = await getDoc(doc(db, "users", user.uid, "friends", targetUid));
+                    if (friendDoc.exists()) {
+                        setFriendStatus('friends');
+                    } else {
+                        // Check if sent request
+                        const sentReq = await getDoc(doc(db, "users", user.uid, "sent_requests", targetUid));
+                        if (sentReq.exists()) {
+                            setFriendStatus('pending_sent');
+                        } else {
+                            // Check if received request
+                            const receivedReq = await getDoc(doc(db, "users", user.uid, "friend_requests", targetUid));
+                            if (receivedReq.exists()) {
+                                setFriendStatus('pending_received');
+                            } else {
+                                setFriendStatus('none');
+                            }
+                        }
+                    }
+                }
+
+                // 3. Load Voting Data (Static Fetch)
                 const categoriesSnap = await getDocs(collection(db, "categories"));
                 const categoriesMap = new Map<string, { name: string; nominees: Nominee[] }>();
                 categoriesSnap.forEach(catDoc => {
@@ -94,13 +135,7 @@ export default function ProfilePage() {
                 const resultsSnap = await getDoc(doc(db, "admin", "results"));
                 const officialWinners = resultsSnap.exists() ? resultsSnap.data() : {};
 
-                const userVotesPath = groupId && groupId !== "global"
-                    ? `users/${user.uid}/groups/${groupId}/votes`
-                    : `users/${user.uid}/votes`;
-                const userVotesSnap = await getDocs(collection(db, userVotesPath));
-                const userVotes: Record<string, any> = {};
-                userVotesSnap.forEach(voteDoc => { userVotes[voteDoc.id] = voteDoc.data(); });
-
+                // Target Votes
                 const targetVotesPath = groupId && groupId !== "global"
                     ? `users/${targetUid}/groups/${groupId}/votes`
                     : `users/${targetUid}/votes`;
@@ -108,13 +143,23 @@ export default function ProfilePage() {
                 const targetVotes: Record<string, any> = {};
                 targetVotesSnap.forEach(voteDoc => { targetVotes[voteDoc.id] = voteDoc.data(); });
 
+                // User Votes (if logged in)
+                const userVotes: Record<string, any> = {};
+                if (user) {
+                    const userVotesPath = groupId && groupId !== "global"
+                        ? `users/${user.uid}/groups/${groupId}/votes`
+                        : `users/${user.uid}/votes`;
+                    const userVotesSnap = await getDocs(collection(db, userVotesPath));
+                    userVotesSnap.forEach(voteDoc => { userVotes[voteDoc.id] = voteDoc.data(); });
+                }
+
                 const comparisonsData: CategoryComparison[] = [];
                 let matches = 0;
                 let total = 0;
                 let correctGuesses = 0;
                 let totalPredictions = 0;
 
-                const isOwnProfileCheck = user.uid === targetUid;
+                const isOwnProfileCheck = user?.uid === targetUid;
 
                 categoriesMap.forEach((categoryData, categoryId) => {
                     const uVote = userVotes[categoryId];
@@ -178,6 +223,8 @@ export default function ProfilePage() {
                 setStats({ matches, total, percentage: total > 0 ? Math.round((matches / total) * 100) : 0 });
                 setOwnStats({ correctGuesses, totalPredictions, accuracy: totalPredictions > 0 ? Math.round((correctGuesses / totalPredictions) * 100) : 0 });
 
+                return () => unsubProfile(); // Clean up listener
+
             } catch (error) {
                 console.error("Error cargando perfil:", error);
                 toast.error("Error cargando perfil");
@@ -188,6 +235,86 @@ export default function ProfilePage() {
 
         loadProfile();
     }, [user, username, groupId, router]);
+
+    // --- Social Handlers ---
+    const handleSendRequest = async () => {
+        if (!user || !targetProfile || processingSocial) return;
+        setProcessingSocial(true);
+        try {
+            await sendFriendRequest(user.uid, targetProfile.uid, {
+                username: user.displayName || "Usuario",
+                photoURL: user.photoURL || undefined
+            });
+            setFriendStatus('pending_sent');
+            toast.success("Solicitud enviada");
+        } catch (error) {
+            toast.error("Error enviando solicitud");
+        } finally { setProcessingSocial(false); }
+    };
+
+    const handleAcceptRequest = async () => {
+        if (!user || !targetProfile || processingSocial) return;
+        setProcessingSocial(true);
+        try {
+            await acceptFriendRequest(user.uid, targetProfile.uid);
+            setFriendStatus('friends');
+            toast.success("¡Ahora son amigos!");
+        } catch (error) {
+            toast.error("Error aceptando solicitud");
+        } finally { setProcessingSocial(false); }
+    };
+
+    const handleCancelRequest = async () => {
+        // Works for both cancelling sent request OR rejecting received request logic if we treat them similar, 
+        // but here we are specifically cancelling a sent request or rejecting.
+        // rejectFriendRequest handles wiping docs from both sides.
+        if (!user || !targetProfile || processingSocial) return;
+        setProcessingSocial(true);
+        try {
+            await rejectFriendRequest(targetProfile.uid, user.uid); // Swapped for reject logic: Sender (target), Receiver (user)?? 
+            // WAIT: rejectFriendRequest(current, target) removes `current/incoming/target` and `target/outgoing/current`
+            // If I sent it, I am 'current', target is 'target'. 
+            // My doc is: `users/me/sent_requests/target`
+            // Their doc is: `users/target/friend_requests/me`
+            // rejectFriendRequest logic: delete `users/current/friend_requests/target` (incoming). 
+            // So if I want to CANCEL a sent request, I need a different function or careful usage.
+            // Let's look at `rejectFriendRequest`: it deletes `current/friend_requests/target`.
+            // So it works for REJECTING. 
+            // To CANCEL, we need to delete `current/sent_requests/target` and `target/friend_requests/current`.
+
+            // NOTE: Ideally we should have a `cancelFriendRequest` in lib, but `rejectFriendRequest` essentially removes the link if arguments are swapped? 
+            // If I call `rejectFriendRequest(target, me)`, it deletes `target/friend_requests/me` and `me/sent_requests/target`. 
+            // YES! This logic works for cancelling too if we swap args.
+
+            if (friendStatus === 'pending_sent') {
+                // I sent it. So treat 'target' as the one who has the request (receiver).
+                await rejectFriendRequest(targetProfile.uid, user.uid);
+                toast.success("Solicitud cancelada");
+            } else {
+                // I received it.
+                await rejectFriendRequest(user.uid, targetProfile.uid);
+                toast.success("Solicitud rechazada");
+            }
+
+            setFriendStatus('none');
+        } catch (error) {
+            toast.error("Error cancelando solicitud");
+        } finally { setProcessingSocial(false); }
+    };
+
+    const handleRemoveFriend = async () => {
+        if (!user || !targetProfile || processingSocial) return;
+        if (!confirm("¿Seguro que quieres eliminar a este amigo?")) return;
+        setProcessingSocial(true);
+        try {
+            await removeFriend(user.uid, targetProfile.uid);
+            setFriendStatus('none');
+            toast.success("Amigo eliminado");
+        } catch (error) {
+            toast.error("Error eliminando amigo");
+        } finally { setProcessingSocial(false); }
+    };
+
 
     if (loading) {
         return (
@@ -215,7 +342,7 @@ export default function ProfilePage() {
                 {/* HERO */}
                 <div className="bg-surface border border-white/10 rounded-xl p-8 mb-8">
                     <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-deep border-4 border-primary shadow-lg">
+                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-deep border-4 border-primary shadow-lg relative">
                             {targetProfile.photoURL ? (
                                 <img src={targetProfile.photoURL} alt={targetProfile.username} className="w-full h-full object-cover" />
                             ) : (
@@ -224,14 +351,82 @@ export default function ProfilePage() {
                                 </div>
                             )}
                         </div>
-                        <div className="text-center md:text-left flex-1">
-                            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">{targetProfile.username}</h1>
-                            {targetProfile.displayName && <p className="text-gray-400 mb-2">{targetProfile.displayName}</p>}
-                            {isOwnProfile && (
-                                <div className="inline-flex items-center gap-2 bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-lg text-sm font-bold">
-                                    <User size={16} /> Tu perfil
-                                </div>
-                            )}
+                        <div className="text-center md:text-left flex-1 space-y-2">
+                            <div>
+                                <h1 className="text-3xl md:text-4xl font-black text-white mb-1">{targetProfile.username}</h1>
+                                {targetProfile.displayName && <p className="text-gray-400">{targetProfile.displayName}</p>}
+                            </div>
+
+                            {/* Friends Count Badge */}
+                            <div className="inline-flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full border border-white/5 text-sm">
+                                <Users size={14} className="text-primary" />
+                                <span className="font-bold text-white">{targetProfile.friendsCount || 0}</span>
+                                <span className="text-gray-500 text-xs uppercase tracking-wider">Amigos</span>
+                            </div>
+
+                            {/* Relationship Badge/Buttons */}
+                            <div className="pt-2 flex justify-center md:justify-start gap-3">
+                                {isOwnProfile ? (
+                                    <div className="inline-flex items-center gap-2 bg-primary/20 text-primary border border-primary/30 px-4 py-2 rounded-lg text-sm font-bold">
+                                        <User size={16} /> Tu perfil
+                                    </div>
+                                ) : (
+                                    <>
+                                        {friendStatus === 'none' && (
+                                            <button
+                                                onClick={handleSendRequest}
+                                                disabled={processingSocial}
+                                                className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 border border-emerald-400/20"
+                                            >
+                                                <UserPlus size={18} />
+                                                <span>Agregar Amigo</span>
+                                            </button>
+                                        )}
+                                        {friendStatus === 'pending_sent' && (
+                                            <button
+                                                onClick={handleCancelRequest}
+                                                disabled={processingSocial}
+                                                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+                                            >
+                                                <Clock size={18} /> Solicitud Enviada (Cancelar)
+                                            </button>
+                                        )}
+                                        {friendStatus === 'pending_received' && (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleAcceptRequest}
+                                                    disabled={processingSocial}
+                                                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black px-4 py-2 rounded-lg text-sm font-bold transition-transform hover:scale-105"
+                                                >
+                                                    <UserCheck size={18} /> Aceptar
+                                                </button>
+                                                <button
+                                                    onClick={handleCancelRequest}
+                                                    disabled={processingSocial}
+                                                    className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+                                                >
+                                                    <UserX size={18} />
+                                                </button>
+                                            </div>
+                                        )}
+                                        {friendStatus === 'friends' && (
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 bg-green-500/20 text-green-400 border border-green-500/30 px-4 py-2 rounded-lg text-sm font-bold">
+                                                    <UserCheck size={18} /> Amigos
+                                                </div>
+                                                <button
+                                                    onClick={handleRemoveFriend}
+                                                    disabled={processingSocial}
+                                                    className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                                                    title="Eliminar amigo"
+                                                >
+                                                    <UserX size={18} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
 
