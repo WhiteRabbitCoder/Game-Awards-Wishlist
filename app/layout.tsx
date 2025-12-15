@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     siteName: 'Wishlist Awards',
     images: [
       {
-        url: 'https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png',
+        url: 'https://i.postimg.cc/d0hTX4t8/Default-Profile-Image.png',
         width: 512,
         height: 512,
         alt: 'Wishlist Awards Logo',
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: 'Wishlist Awards - Predice los ganadores',
     description: 'Compite con tus amigos prediciendo los ganadores de The Game Awards',
-    images: ['https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png'],
+    images: ['https://i.postimg.cc/d0hTX4t8/Default-Profile-Image.png'],
   },
 };
 
