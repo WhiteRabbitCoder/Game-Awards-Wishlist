@@ -23,6 +23,14 @@ const GENERAL_MESSAGES = [
     "Pssst... ¡no te olvides de guardar!",
 ];
 
+const POST_EVENT_MESSAGES = [
+    "¡Los ganadores han sido revelados!",
+    "¿Cuántos acertaste?",
+    "Meow... ¡ve a revisar tus resultados!",
+    "¡Gracias por participar!",
+    "¡Nos vemos el próximo año!",
+];
+
 const SPECIAL_MESSAGES = [
     "Hey… I like you more than I usually admit.",
     "You clicked… Cupcake, and somehow that made my day brighter.",
@@ -33,14 +41,35 @@ const SPECIAL_MESSAGES = [
     "If hearts had rankings, you'd probably be top tier without even trying.",
 ];
 
-// Mensajes post-evento
-const POST_EVENT_MESSAGES = [
-    "¡Los ganadores han sido revelados!",
-    "¿Cuántos acertaste?",
-    "Meow... ¡ve a revisar tus resultados!",
-    "¡Gracias por participar!",
-    "¡Nos vemos el próximo año!",
+const SPECIAL_MESSAGES_POST = [
+    "GG, Cupcake. That was fun!",
+    "I'm scared that when I graduate, some French game will steal my title. :c",
+    "You carried harder than my favorite support character.",
+    "If I were The Game Awards, you'd be my Clair Obscur: Expedition 33.",
+    "Your predictions were... interesting. Very bold choices, I respect that.",
+    "At least you didn't bet on the best mobile game. That's gamer wisdom.",
+    "Even if your predictions flopped, you're still a 89/89 in my book.",
+    "Next year we're forming a prediction alliance. Deal?",
+    "The real award was the chaos we caused along the way.",
+    "You have the energy of a secret unlockable character.",
+    "I really wish I could've watched the results with you, it was important to me. Sorry :(",
+    "Some games end. We're an endless roguelike.",
+    "Post-credits scene: you and me, vibing forever.",
+    "The ceremony ended, but you're still the main character.",
+    "Not gonna lie, your taste in games is... actually pretty good.",
+    "You're like a side quest I didn't expect but ended up being the best part.",
+    "Maybe you lost the competition, but you always win at being cool. c:",
+    "No sequel needed — you're already a solid 10/10 experience.",
+    "Even Astro Bot couldn't platformer his way into the rankings like you did.",
+    "They announced winners, but I already had my pick for best vibe.",
+    "Maybe you lost the competition, but you'll always win my heart. c:",
+    "No sequel needed — you're already my favorite franchise.",
+    "You make my heart buffer like a poorly optimized game, but I still love it.",
+    "Even Astro Bot couldn't platformer his way into my heart like you did.",
+    "They announced winners, but I already knew mine: it's you.",
+    "My love for you has more content than a Baldur's Gate 3 playthrough.",
 ];
+
 
 
 export default function HeroSection() {
@@ -61,14 +90,19 @@ export default function HeroSection() {
         let availableMessages = isEventOver ? [...POST_EVENT_MESSAGES] : [...GENERAL_MESSAGES];
 
         if (user?.displayName === "Danieloide") {
+            // Añadir mensajes especiales (siempre)
             availableMessages = [...availableMessages, ...SPECIAL_MESSAGES];
+            // Añadir mensajes especiales post-evento
+            if (isEventOver) {
+                availableMessages = [...availableMessages, ...SPECIAL_MESSAGES_POST];
+            }
         }
 
         const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
         toast(randomMessage, {
             icon: '🐾',
-            duration: 5000,
+            duration: 7000,
             style: {
                 background: '#333',
                 color: '#fff',
