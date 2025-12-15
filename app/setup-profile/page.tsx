@@ -17,9 +17,19 @@ export default function SetupProfilePage() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
-    // Si no hay usuario, volver al login
+    // Pre-llenar username con displayName de Google como sugerencia
     useEffect(() => {
-        if (!user) return; // Esperar a que cargue auth
+        if (!user) return;
+
+        // Si el usuario vino de Google y tiene displayName, sugerirlo como username
+        if (user.displayName && !username) {
+            const suggestedUsername = user.displayName
+                .toLowerCase()
+                .replace(/\s+/g, '_')
+                .replace(/[^a-z0-9_]/g, '')
+                .slice(0, 20);
+            setUsername(suggestedUsername);
+        }
     }, [user]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +39,7 @@ export default function SetupProfilePage() {
         setLoading(true);
         setError("");
 
-        const cleanUsername = username.trim().toLowerCase(); // Guardamos en minúsculas para evitar duplicados tipo "User" y "user"
+        const cleanUsername = username.trim().toLowerCase();
 
         // Validaciones básicas
         if (cleanUsername.length < 3) {
@@ -50,8 +60,6 @@ export default function SetupProfilePage() {
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                // Si encontramos a alguien con ese nombre...
-                // Verificamos si NO soy yo mismo (por si estoy re-guardando mi propio perfil)
                 const existingUser = querySnapshot.docs[0];
                 if (existingUser.id !== user.uid) {
                     setError("Este nombre de usuario ya está en uso. Elige otro.");
@@ -60,25 +68,23 @@ export default function SetupProfilePage() {
                 }
             }
 
-            // 2. Guardar en Firestore
-            // Usamos merge: true para no borrar datos existentes (como los votos)
+            // 2. Guardar en Firestore (incluye photoURL de Google)
             await setDoc(doc(db, "users", user.uid), {
                 username: cleanUsername,
-                displayName: username.trim(), // Guardamos el formato original visualmente
-                photoURL: user.photoURL,
+                displayName: username.trim(),
+                photoURL: user.photoURL || null, // Guardar foto de Google
                 email: user.email,
                 updatedAt: new Date(),
-                setupCompleted: true // Bandera para saber que ya pasó por aquí
+                setupCompleted: true
             }, { merge: true });
 
-            // 3. Actualizar el perfil de Firebase Auth (para que user.displayName se actualice en toda la app)
+            // 3. Actualizar el perfil de Firebase Auth
             await updateProfile(user, {
                 displayName: username.trim()
             });
 
             setSuccess(true);
 
-            // Redirigir después de un momento
             setTimeout(() => {
                 router.push("/");
             }, 1500);
@@ -107,13 +113,20 @@ export default function SetupProfilePage() {
                 <div className="text-center mb-8">
                     <div className="relative inline-block mb-6">
                         <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
-                        <div className="relative bg-gradient-to-br from-primary/20 to-cyber-neon/20 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto border-2 border-primary/30 shadow-lg">
-                            <User size={48} className="text-primary" />
-                        </div>
+                        {/* Mostrar foto de Google si existe */}
+                        {user.photoURL ? (
+                            <div className="relative w-24 h-24 rounded-2xl overflow-hidden mx-auto border-2 border-primary/30 shadow-lg">
+                                <img src={user.photoURL} alt="Tu foto" className="w-full h-full object-cover" />
+                            </div>
+                        ) : (
+                            <div className="relative bg-gradient-to-br from-primary/20 to-cyber-neon/20 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto border-2 border-primary/30 shadow-lg">
+                                <User size={48} className="text-primary" />
+                            </div>
+                        )}
                     </div>
 
                     <h1 className="text-3xl font-black mb-2 bg-gradient-to-r from-primary via-cyber-neon to-primary bg-clip-text text-transparent">
-                        Configura tu Perfil
+                        {user.displayName ? `¡Hola, ${user.displayName.split(' ')[0]}!` : 'Configura tu Perfil'}
                     </h1>
                     <p className="text-gray-400 text-sm leading-relaxed">
                         Elige un nombre de usuario único para participar en los grupos y rankings.
@@ -171,8 +184,8 @@ export default function SetupProfilePage() {
                         type="submit"
                         disabled={loading || success}
                         className={`w-full py-4 rounded-xl font-black text-lg transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${success
-                                ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-600/30"
-                                : "bg-gradient-to-r from-primary to-primary-light text-deep shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98]"
+                            ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-600/30"
+                            : "bg-gradient-to-r from-primary to-primary-light text-deep shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98]"
                             } disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
                     >
                         {/* Efecto de brillo en hover */}

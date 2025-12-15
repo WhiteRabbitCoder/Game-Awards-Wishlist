@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import HybridCountdown from "./HybridCountdown";
-import { ExternalLink, Sparkles, Trophy } from "lucide-react";
+import { ExternalLink, Sparkles, Trophy, Award, PartyPopper, Star } from "lucide-react";
 import { useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
@@ -10,12 +10,9 @@ import Link from "next/link";
 
 // --- CONSTANTES DE IMÁGENES Y MENSAJES ---
 
-// URL de la imagen por defecto
 const DEFAULT_CAT_IMAGE_URL = "https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png";
-// ⚠️ IMPORTANTE: Reemplaza la siguiente URL con la imagen especial para Danieloide
 const SPECIAL_CAT_IMAGE_URL = "https://i.postimg.cc/MHGsrTKm/Cupcake-Logo-Cat.png";
 
-// 3. Definir las listas de mensajes
 const GENERAL_MESSAGES = [
     "Meow!",
     "¡Haz tu predicción!",
@@ -30,43 +27,52 @@ const SPECIAL_MESSAGES = [
     "Hey… I like you more than I usually admit.",
     "You clicked… Cupcake, and somehow that made my day brighter.",
     "You have this little spark that makes everything feel a bit better.",
-    "If moods had buffs, you’d definitely be one of mine, Cupcake.",
-    "Sometimes I think you’re a small plot twist in my day — the good kind.",
+    "If moods had buffs, you'd definitely be one of mine, Cupcake.",
+    "Sometimes I think you're a small plot twist in my day — the good kind.",
     "By the way… Split Fiction totally deserves the GOTY — but you still win my personal award for best vibe.",
-    "If hearts had rankings, you’d probably be top tier without even trying.",
+    "If hearts had rankings, you'd probably be top tier without even trying.",
+];
+
+// Mensajes post-evento
+const POST_EVENT_MESSAGES = [
+    "¡Los ganadores han sido revelados!",
+    "¿Cuántos acertaste?",
+    "Meow... ¡ve a revisar tus resultados!",
+    "¡Gracias por participar!",
+    "¡Nos vemos el próximo año!",
 ];
 
 
 export default function HeroSection() {
     const { user } = useAuth();
-    const eventDate = new Date("2025-12-11T19:30:00-05:00");
+    const eventStartDate = new Date("2025-12-11T19:30:00-05:00");
+    const eventEndDate = new Date("2025-12-11T23:00:00-05:00");
+
     const catRef = useRef<HTMLImageElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const spotlightRef = useRef<HTMLDivElement>(null);
-    const [isEventLive, setIsEventLive] = useState(false);
 
-    // Determinar qué imagen mostrar
+    const [isEventLive, setIsEventLive] = useState(false);
+    const [isEventOver, setIsEventOver] = useState(false);
+
     const catImageUrl = user?.displayName === "Danieloide" ? SPECIAL_CAT_IMAGE_URL : DEFAULT_CAT_IMAGE_URL;
 
-    // 5. Crear la función para el clic
     const handleCatClick = () => {
-        let availableMessages = [...GENERAL_MESSAGES];
+        let availableMessages = isEventOver ? [...POST_EVENT_MESSAGES] : [...GENERAL_MESSAGES];
 
-        // Si el usuario es "Danieloide", se añaden los mensajes especiales
         if (user?.displayName === "Danieloide") {
             availableMessages = [...availableMessages, ...SPECIAL_MESSAGES];
         }
 
         const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
-        // Mostrar el mensaje con un icono
         toast(randomMessage, {
             icon: '🐾',
-            duration: 5000, // <--- CAMBIO AQUÍ: Duración en milisegundos (6 segundos)
+            duration: 5000,
             style: {
                 background: '#333',
                 color: '#fff',
-                minWidth: '250px', // Opcional: hace que el toast sea un poco más ancho para mensajes largos
+                minWidth: '250px',
             },
         });
     };
@@ -115,23 +121,15 @@ export default function HeroSection() {
     }, []);
 
     useEffect(() => {
-        const checkIfLive = () => {
-            setIsEventLive(new Date() > eventDate);
+        const checkEventStatus = () => {
+            const now = new Date();
+            setIsEventLive(now > eventStartDate && now < eventEndDate);
+            setIsEventOver(now >= eventEndDate);
         };
-        checkIfLive();
-        const interval = setInterval(checkIfLive, 1000);
+        checkEventStatus();
+        const interval = setInterval(checkEventStatus, 1000);
         return () => clearInterval(interval);
     }, []);
-
-    // Determinar qué mensaje mostrar
-    let availableMessages = [...GENERAL_MESSAGES];
-
-    // Si el usuario es "Danieloide", se añaden los mensajes especiales
-    if (user?.displayName === "Danieloide") {
-        availableMessages = [...availableMessages, ...SPECIAL_MESSAGES];
-    }
-
-    const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
 
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-deep via-surface to-deep pt-20 pb-10">
@@ -145,7 +143,6 @@ export default function HeroSection() {
                 ref={spotlightRef}
                 className="absolute inset-0 pointer-events-none transition-opacity duration-300"
                 style={{
-                    // Initial state to avoid flickering before JS loads
                     background: `radial-gradient(600px circle at 50% 50%, rgba(99, 102, 241, 0.07), transparent 40%)`
                 }}
             />
@@ -180,9 +177,23 @@ export default function HeroSection() {
                     </span>
                 </h1>
 
-                <p className="text-lg md:text-2xl text-gray-400 mb-2 font-medium">
-                    El destino de los juegos está en tus manos
-                </p>
+                {/* SUBTITLE - Cambia según el estado del evento */}
+                {isEventOver ? (
+                    <>
+                        <p className="text-lg md:text-2xl text-yellow-400 mb-2 font-bold flex items-center justify-center gap-2">
+                            <Award size={24} className="animate-bounce" />
+                            Los jueces han hablado
+                            <Award size={24} className="animate-bounce" />
+                        </p>
+                        <p className="text-xl md:text-3xl text-white font-black mb-6">
+                            ¿Cuántos has acertado?
+                        </p>
+                    </>
+                ) : (
+                    <p className="text-lg md:text-2xl text-gray-400 mb-2 font-medium">
+                        El destino de los juegos está en tus manos
+                    </p>
+                )}
 
                 <div className="flex items-center justify-center gap-2 text-sm md:text-base text-gray-500 mb-10">
                     <Sparkles size={16} className="text-cyber-neon animate-pulse" />
@@ -190,19 +201,34 @@ export default function HeroSection() {
                     <Sparkles size={16} className="text-cyber-neon animate-pulse" />
                 </div>
 
-                {/* COUNTDOWN */}
-                <div className="mb-12 inline-block relative group">
-                    {/* Removida la sombra violeta - antes: <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-10 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div> */}
-                    <div className="relative">
-                        <h2 className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.3em] mb-6 font-digital">
-                            {isEventLive ? "En vivo ahora" : "Tiempo restante"}
-                        </h2>
-                        <HybridCountdown targetDate={eventDate} />
+                {/* COUNTDOWN - Solo mostrar si el evento no ha terminado */}
+                {!isEventOver && (
+                    <div className="mb-12 inline-block relative group">
+                        <div className="relative">
+                            <h2 className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.3em] mb-6 font-digital">
+                                {isEventLive ? "En vivo ahora" : "Tiempo restante"}
+                            </h2>
+                            <HybridCountdown targetDate={eventStartDate} />
+                        </div>
                     </div>
-                </div>
+                )}
 
-                {/* BOTÓN TGA - Solo visible si NO está en vivo */}
-                {!isEventLive && (
+                {/* MENSAJE POST-EVENTO */}
+                {isEventOver && (
+                    <div className="mb-12 bg-gradient-to-r from-yellow-500/10 via-primary/10 to-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 max-w-xl mx-auto">
+                        <div className="flex items-center justify-center gap-3 mb-3">
+                            <PartyPopper size={24} className="text-yellow-400" />
+                            <span className="text-lg font-bold text-white">¡El evento ha finalizado!</span>
+                            <PartyPopper size={24} className="text-yellow-400" />
+                        </div>
+                        <p className="text-gray-400 text-sm">
+                            Revisa tus predicciones y compara tus resultados con tus amigos.
+                        </p>
+                    </div>
+                )}
+
+                {/* BOTÓN TGA - Solo visible si NO está en vivo Y NO ha terminado */}
+                {!isEventLive && !isEventOver && (
                     <div className="flex justify-center mb-8">
                         <a
                             href="https://thegameawards.com/brackets"
@@ -218,24 +244,60 @@ export default function HeroSection() {
 
                 {/* CTA BUTTONS */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pb-20">
-                    <Link
-                        href="/vote"
-                        className="group relative px-8 py-4 bg-gradient-to-r from-primary to-primary-light text-white font-bold text-lg rounded-full shadow-lg hover:shadow-gold-glow transition-all duration-300 hover:scale-110 active:scale-95 flex items-center gap-3 z-20"
-                    >
-                        <Trophy size={24} className="group-hover:rotate-12 group-hover:text-yellow-200 transition-transform" />
-                        <span>HACER MIS PREDICCIONES</span>
-                    </Link>
+                    {isEventOver ? (
+                        <>
+                            {/* Botón para ver ganadores */}
+                            <Link
+                                href="/winners"
+                                className="group relative px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center gap-3 z-20"
+                            >
+                                <Trophy size={24} className="group-hover:rotate-12 transition-transform" />
+                                <span>VER GANADORES</span>
+                            </Link>
 
-                    <button
-                        onClick={() => {
-                            const element = document.getElementById('grupos');
-                            element?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="px-8 py-4 border-2 border-gray-700 text-gray-300 font-bold text-lg rounded-full hover:border-cyber-neon hover:text-cyber-neon transition-all duration-300 hover:shadow-neon hover:bg-white/5 active:scale-95"
-                    >
-                        Ver Rankings
-                    </button>
+                            {/* Botón para ver rankings */}
+                            {/* Botón para ver rankings (CORREGIDO) */}
+                            <Link
+                                href="/my-results"
+                                className="px-8 py-4 border-2 border-gray-700 text-gray-300 font-bold text-lg rounded-full hover:border-cyber-neon hover:text-cyber-neon transition-all duration-300 hover:shadow-neon hover:bg-white/5 active:scale-95 flex items-center justify-center"
+                            >
+                                Ver Mis Resultados
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            {/* Botón para hacer predicciones (pre-evento) */}
+                            <Link
+                                href="/vote"
+                                className="group relative px-8 py-4 bg-gradient-to-r from-primary to-primary-light text-white font-bold text-lg rounded-full shadow-lg hover:shadow-gold-glow transition-all duration-300 hover:scale-110 active:scale-95 flex items-center gap-3 z-20"
+                            >
+                                <Trophy size={24} className="group-hover:rotate-12 group-hover:text-yellow-200 transition-transform" />
+                                <span>HACER MIS PREDICCIONES</span>
+                            </Link>
+
+                            <button
+                                onClick={() => {
+                                    const element = document.getElementById('grupos');
+                                    element?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="px-8 py-4 border-2 border-gray-700 text-gray-300 font-bold text-lg rounded-full hover:border-cyber-neon hover:text-cyber-neon transition-all duration-300 hover:shadow-neon hover:bg-white/5 active:scale-95"
+                            >
+                                Ver Rankings
+                            </button>
+                        </>
+                    )}
                 </div>
+
+                {/* INVITACIÓN PARA EL PRÓXIMO AÑO (Post-evento) */}
+                {isEventOver && (
+                    <div className="mt-4 text-center">
+                        <p className="text-gray-500 text-sm flex items-center justify-center gap-2">
+                            <Star size={14} className="text-primary" />
+                            ¡Gracias por participar! Nos vemos en 2026.
+                            <Star size={14} className="text-primary" />
+                        </p>
+                    </div>
+                )}
 
             </div>
         </section>

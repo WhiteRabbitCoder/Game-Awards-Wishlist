@@ -217,9 +217,9 @@ export default function GroupPage() {
                                     href="/vote?groupId=global"
                                     className="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-black font-bold py-4 px-8 rounded-xl text-lg transition-all hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:scale-105 group"
                                 >
-                                    <PlayCircle size={24} className="group-hover:scale-110 transition-transform" />
-                                    Hacer Predicciones
-                                    <Sparkles size={20} className="animate-pulse" />
+                                    <PlayCircle size={24} className="group-hover:scale-110 transition-transform text-white" />
+                                    <span className="text-white">Hacer Predicciones</span>
+                                    <Sparkles size={20} className="animate-pulse text-white" />
                                 </Link>
                             </div>
 

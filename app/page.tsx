@@ -4,10 +4,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Users, Plus, Loader2, Trophy, Copy, Check, LogIn, Pencil, Globe, LogOut } from "lucide-react";
-import HeroSection from "@/components/HeroSection"; // IMPORTANTE: Tu componente actualizado
+import HeroSection from "@/components/HeroSection";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { createGroup, getUserGroups, joinGroup, updateGroup } from "@/lib/groups";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function HomePage() {
   const { user, logout, loading: authLoading } = useAuth();
@@ -15,6 +17,7 @@ export default function HomePage() {
 
   const [groups, setGroups] = useState<any[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   // Modales
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -29,17 +32,40 @@ export default function HomePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- 1. PROTECCIÓN DE RUTA ---
+  // --- 1. PROTECCIÓN DE RUTA (Ahora verifica Firestore) ---
   useEffect(() => {
-    if (!authLoading) {
+    const checkProfileSetup = async () => {
+      if (authLoading) return;
+
       if (!user) {
         router.push("/login");
-      } else if (!user.emailVerified) {
-        router.push("/verify-email");
-      } else if (!user.displayName) {
-        router.push("/setup-profile");
+        return;
       }
-    }
+
+      if (!user.emailVerified) {
+        router.push("/verify-email");
+        return;
+      }
+
+      // Verificar si el usuario tiene un username en Firestore (no solo displayName de Auth)
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.data();
+
+        // Si no existe el documento o no tiene username, redirigir a setup-profile
+        if (!userDoc.exists() || !userData?.username) {
+          router.push("/setup-profile");
+          return;
+        }
+
+        setCheckingProfile(false);
+      } catch (error) {
+        console.error("Error verificando perfil:", error);
+        setCheckingProfile(false);
+      }
+    };
+
+    checkProfileSetup();
   }, [user, authLoading, router]);
 
   // --- 2. CARGA DE GRUPOS ---
@@ -58,8 +84,10 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    loadGroups();
-  }, [user]);
+    if (!checkingProfile) {
+      loadGroups();
+    }
+  }, [user, checkingProfile]);
 
   // --- 3. FUNCIONES DE MODALES ---
   const handleCreateGroup = async (e: React.FormEvent) => {
@@ -128,12 +156,10 @@ export default function HomePage() {
     setShowRenameModal(true);
   };
 
-  if (authLoading || !user) return null;
+  if (authLoading || !user || checkingProfile) return null;
 
   return (
     <div className="min-h-screen bg-deep pb-20">
-
-
       {/* HERO SECTION COMPLETO */}
       <HeroSection />
 
@@ -169,7 +195,6 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
             {/* TARJETA RANKING MUNDIAL */}
             <div className="group relative bg-gradient-to-br from-blue-900 via-purple-900 to-blue-900 border-2 border-primary/50 rounded-2xl p-6 flex flex-col justify-between transition-all hover:border-primary hover:shadow-2xl hover:shadow-primary/30 min-h-[220px]">
               <div>
@@ -221,7 +246,6 @@ export default function HomePage() {
       </div>
 
       {/* --- MODALES --- */}
-      {/* ... Mismos modales de antes (Create, Join, Rename) ... */}
 
       {/* MODAL CREAR */}
       {showCreateModal && (
