@@ -99,6 +99,13 @@ export default function SettingsPage() {
         const cleanUsername = username.trim().toLowerCase();
         const displayUsername = username.trim();
 
+        // EASTER EGG RESTRICTION
+        if (cleanUsername === "cupcake" && user.email !== "danigq000@gmail.com") {
+            toast.error("Este nombre de usuario está reservado 🧁");
+            setLoading(false);
+            return;
+        }
+
         if (cleanUsername.length < 3) {
             toast.error("El nombre de usuario es muy corto");
             setLoading(false);

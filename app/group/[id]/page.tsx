@@ -5,7 +5,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, collection, getDocs, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles, BarChart3, Loader2, Copy, Check } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Share2, PlayCircle, Crown, User, Globe, Sparkles, BarChart3, Loader2, Copy, Check, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import GroupStats from "@/components/GroupStats";
 import Leaderboard from "@/components/Leaderboard";
@@ -113,30 +113,84 @@ export default function GroupPage() {
 
         fetchGroupData();
         return () => { if (unsubscribeMembers) unsubscribeMembers(); };
-    }, [user, groupId, router]); // Agregué router a las dependencias por buena práctica
+    }, [user, groupId, router]);
 
-    // Cálculo de estadísticas (llamado una sola vez al cargar el grupo)
+    // Estado para Arcade Mode
+    const [arcadeMode, setArcadeMode] = useState(false);
+    const [officialWinners, setOfficialWinners] = useState<Record<string, string>>({});
+    const [allMemberVotes, setAllMemberVotes] = useState<Record<string, Record<string, any>>>({});
+    const [arcadeScores, setArcadeScores] = useState<Record<string, number>>({});
+    const [standardScores, setStandardScores] = useState<Record<string, number>>({});
+    const [CalculatingArcade, setCalculatingArcade] = useState(false);
+
+    // Cargar Ganadores Oficiales
     useEffect(() => {
-        const calculateStats = async () => {
-            if (!user || !groupId) return;
+        const fetchWinners = async () => {
+            try {
+                const resultsSnap = await getDoc(doc(db, "admin", "results"));
+                if (resultsSnap.exists()) {
+                    setOfficialWinners(resultsSnap.data() as Record<string, string>);
+                }
+            } catch (e) {
+                console.error("Error fetching winners", e);
+            }
+        };
+        fetchWinners();
+    }, []);
+
+    // Cálculo de estadísticas y votos (Standard + Arcade)
+    useEffect(() => {
+        const calculateData = async () => {
+            if (!user || !groupId || groupId === "global") return;
             try {
                 const membersRef = collection(db, "groups", groupId, "members");
                 const membersSnap = await getDocs(membersRef);
+                const currentMemberIds = membersSnap.docs.map(d => d.id);
 
-                type VoteStat = { memberId: string; categoryId: string };
+                const votesMap: Record<string, Record<string, any>> = {};
+                const calculatedStandardScores: Record<string, number> = {};
 
-                const votesPromises: Promise<VoteStat[]>[] = membersSnap.docs.map(async (memberDoc) => {
+                const votesPromises = membersSnap.docs.map(async (memberDoc) => {
                     const memberId = memberDoc.id;
-                    const votesRef = collection(db, "users", memberId, "groups", groupId, "votes");
-                    const votesSnap = await getDocs(votesRef);
+                    let memberVotesRef = collection(db, "users", memberId, "groups", groupId, "votes");
+                    let votesSnap = await getDocs(memberVotesRef);
 
-                    return votesSnap.docs.map(voteDoc => ({
-                        memberId,
-                        categoryId: voteDoc.id, // el ID del doc es la categoría
-                    }));
+                    // FALLBACK: Si no hay votos en el grupo, buscar votos globales
+                    if (votesSnap.empty) {
+                        memberVotesRef = collection(db, "users", memberId, "votes");
+                        votesSnap = await getDocs(memberVotesRef);
+                    }
+
+                    votesMap[memberId] = {};
+                    let memberScore = 0;
+
+                    const userVotes = votesSnap.docs.map(voteDoc => {
+                        const data = voteDoc.data();
+                        votesMap[memberId][voteDoc.id] = data;
+
+                        // Calcular Standard Score al vuelo
+                        const winnerId = officialWinners[voteDoc.id];
+                        if (winnerId) {
+                            const isGOTY = voteDoc.id === "game-of-the-year";
+                            const pointsTable = isGOTY ? [5, 4, 3] : [3, 2, 1];
+                            if (data.firstPlace === winnerId) memberScore += pointsTable[0];
+                            else if (data.secondPlace === winnerId) memberScore += pointsTable[1];
+                            else if (data.thirdPlace === winnerId) memberScore += pointsTable[2];
+                        }
+
+                        return {
+                            memberId,
+                            categoryId: voteDoc.id,
+                        };
+                    });
+
+                    calculatedStandardScores[memberId] = memberScore;
+                    return userVotes;
                 });
 
-                const allVotes: VoteStat[] = (await Promise.all(votesPromises)).flat();
+                const allVotes = (await Promise.all(votesPromises)).flat();
+                setAllMemberVotes(votesMap);
+                setStandardScores(calculatedStandardScores);
 
                 const filteredVotes = allVotes.filter(vote => CATEGORY_ORDER.includes(vote.categoryId));
 
@@ -149,17 +203,73 @@ export default function GroupPage() {
                 });
 
                 const results = Object.values(statsMap);
-
                 results.sort((a, b) => CATEGORY_ORDER.indexOf(a.categoryId) - CATEGORY_ORDER.indexOf(b.categoryId));
-
                 setStats(results.filter(r => r.totalVotes > 0));
+
             } catch (error) {
                 console.error("Error calculando estadísticas:", error);
             }
         };
 
-        calculateStats();
-    }, [user, groupId]);
+        if (Object.keys(officialWinners).length > 0) {
+            calculateData();
+        }
+    }, [user, groupId, officialWinners]);
+
+    // Lógica de Arcade Mode (Recálculo de puntajes)
+    useEffect(() => {
+        if (!arcadeMode || Object.keys(allMemberVotes).length === 0) return;
+
+        setCalculatingArcade(true);
+
+        // 1. Identificar miembros activos (que están en el grupo actual)
+        // Usamos 'members' state para saber quiénes siguen en el grupo
+        const currentMemberIds = members.map(m => m.uid);
+        if (currentMemberIds.length === 0) { setCalculatingArcade(false); return; }
+
+        // 2. Encontrar categorías comunes (Intersección)
+        // Empezamos con todas las categorías posibles
+        let commonCategories = new Set(CATEGORY_ORDER);
+
+        currentMemberIds.forEach(uid => {
+            const userVotes = allMemberVotes[uid] || {};
+            // Filtramos categories: nos quedamos solo con las que este usuario HA votado
+            // (Asumimos que "votar" significa tener firstPlace al menos)
+            const userVotedCats = new Set(Object.keys(userVotes).filter(catId => userVotes[catId]?.firstPlace));
+
+            // Intersección: Mantenemos solo las que están en AMBOS sets
+            commonCategories = new Set(
+                [...commonCategories].filter(x => userVotedCats.has(x))
+            );
+        });
+
+        // 3. Calcular puntajes solo en esas categorías
+        const newScores: Record<string, number> = {};
+
+        currentMemberIds.forEach(uid => {
+            let score = 0;
+            const userVotes = allMemberVotes[uid] || {};
+
+            commonCategories.forEach(catId => {
+                const vote = userVotes[catId];
+                const winnerId = officialWinners[catId];
+                if (!winnerId || !vote) return;
+
+                const isGOTY = catId === "game-of-the-year";
+                const pointsTable = isGOTY ? [5, 4, 3] : [3, 2, 1];
+
+                if (vote.firstPlace === winnerId) score += pointsTable[0];
+                else if (vote.secondPlace === winnerId) score += pointsTable[1];
+                else if (vote.thirdPlace === winnerId) score += pointsTable[2];
+            });
+            newScores[uid] = score;
+        });
+
+        setArcadeScores(newScores);
+        setCalculatingArcade(false);
+
+    }, [arcadeMode, allMemberVotes, members, officialWinners]);
+
 
     if (loading || loadingData) return (
         <div className="min-h-screen bg-deep flex items-center justify-center text-white">
@@ -299,14 +409,16 @@ export default function GroupPage() {
                             Jugar en este Grupo
                         </Link>
 
-                        {/* Botón para cambiar/revisar votos */}
-                        <Link
-                            href={`/vote?groupId=${group.id}`}
-                            className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl transition-all border border-white/20 hover:border-white/40 group"
-                        >
-                            <BarChart3 size={18} className="group-hover:scale-110 transition-transform" />
-                            Cambiar Votos
-                        </Link>
+                        <div className="flex gap-2">
+                            {/* Botón para cambiar/revisar votos */}
+                            <Link
+                                href={`/vote?groupId=${group.id}`}
+                                className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl transition-all border border-white/20 hover:border-white/40 group"
+                            >
+                                <BarChart3 size={18} className="group-hover:scale-110 transition-transform" />
+                                Cambiar Votos
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -316,6 +428,34 @@ export default function GroupPage() {
                 <div className="grid md:grid-cols-12 gap-8">
                     {/* Sidebar Izquierdo */}
                     <div className="md:col-span-4 space-y-6">
+
+                        {/* TOGGLE MODO ARCADE */}
+                        <div className={`p-6 rounded-2xl border transition-all duration-300 ${arcadeMode ? "bg-purple-900/20 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.2)]" : "bg-gradient-to-br from-surface to-deep border-white/10 shadow-xl"}`}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 rounded-lg transition-colors ${arcadeMode ? "bg-purple-500 text-white" : "bg-white/10 text-gray-400"}`}>
+                                        <Gamepad2 size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className={`font-bold text-lg ${arcadeMode ? "text-purple-300" : "text-white"}`}>Modo Arcade</h3>
+                                        <p className="text-xs text-gray-500">Solo categorías comunes</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setArcadeMode(!arcadeMode)}
+                                    className={`relative w-14 h-8 rounded-full transition-all duration-300 ${arcadeMode ? "bg-purple-500" : "bg-gray-700"}`}
+                                >
+                                    <div className={`absolute top-1 left-1 bg-white w-6 h-6 rounded-full transition-all duration-300 shadow-lg ${arcadeMode ? "translate-x-6" : "translate-x-0"}`} />
+                                </button>
+                            </div>
+
+                            {arcadeMode && (
+                                <div className="text-xs text-purple-200/70 bg-purple-500/10 p-3 rounded-lg border border-purple-500/20 animate-in fade-in">
+                                    <p>Comparando solo categorías donde <strong>todos</strong> los miembros votaron.</p>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Card de Código de Invitación */}
                         <div className="bg-gradient-to-br from-surface to-deep border border-white/10 p-6 rounded-2xl shadow-xl backdrop-blur-sm overflow-hidden relative group">
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -365,12 +505,11 @@ export default function GroupPage() {
 
                             <div className="space-y-2 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                                 {members.map((member) => (
-                                    <Link
-                                        href={`/profile/${member.username}?groupId=${group.id}`}
+                                    <div
                                         key={member.uid}
-                                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors group/member cursor-pointer border border-transparent hover:border-primary/30"
+                                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors group/member border border-transparent hover:border-primary/30"
                                     >
-                                        <div className="relative w-10 h-10 flex-shrink-0">
+                                        <Link href={`/profile/${member.username}?groupId=${group.id}`} className="relative w-10 h-10 flex-shrink-0 cursor-pointer">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-retro-accent/20 flex items-center justify-center overflow-hidden border border-primary/30 group-hover/member:border-primary/60 transition-colors">
                                                 {member.photoURL ? (
                                                     <img src={member.photoURL} alt={member.username} className="w-full h-full object-cover" />
@@ -383,18 +522,21 @@ export default function GroupPage() {
                                                     <Crown size={11} className="text-primary fill-primary" />
                                                 </div>
                                             )}
-                                        </div>
+                                        </Link>
 
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-sm truncate group-hover/member:text-primary transition-colors">
+                                            <Link href={`/profile/${member.username}?groupId=${group.id}`} className="font-medium text-sm truncate group-hover/member:text-primary transition-colors cursor-pointer">
                                                 {member.username}
-                                            </p>
+                                            </Link>
                                             <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                {member.score} pts
-                                                {member.isOwner && <span className="text-primary text-xs">• Admin</span>}
+                                                {arcadeMode ? (
+                                                    <span className="text-purple-400 font-bold fade-in">{arcadeScores[member.uid] || 0} pts (Arcade)</span>
+                                                ) : (
+                                                    <span>{standardScores[member.uid] !== undefined ? standardScores[member.uid] : member.score} pts</span>
+                                                )}
                                             </p>
                                         </div>
-                                    </Link>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -403,12 +545,24 @@ export default function GroupPage() {
                     {/* Contenido Principal */}
                     <div className="md:col-span-8 space-y-8">
                         {/* Leaderboard */}
-                        <div className="bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm">
-                            <Leaderboard users={members} currentUserId={user?.uid} />
+                        <div className={`rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm transition-all duration-500 ${arcadeMode ? "border border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.15)]" : "bg-gradient-to-br from-surface to-deep border border-white/10"}`}>
+                            {arcadeMode && (
+                                <div className="bg-purple-900/30 p-4 flex items-center justify-center gap-2 border-b border-purple-500/20">
+                                    <Gamepad2 className="text-purple-400 animate-pulse" size={20} />
+                                    <span className="font-bold text-purple-200 tracking-wider text-sm">MODO ARCADE ACTIVO</span>
+                                </div>
+                            )}
+                            <Leaderboard
+                                users={arcadeMode
+                                    ? members.map(m => ({ ...m, score: arcadeScores[m.uid] || 0 })).sort((a, b) => b.score - a.score)
+                                    : members.map(m => standardScores[m.uid] !== undefined ? { ...m, score: standardScores[m.uid] } : m).sort((a, b) => b.score - a.score)
+                                }
+                                currentUserId={user?.uid}
+                            />
                         </div>
 
                         {/* Estadísticas */}
-                        {members.length > 0 && (
+                        {!arcadeMode && members.length > 0 && (
                             <div className="bg-gradient-to-br from-surface to-deep border border-white/10 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm">
                                 <GroupStats
                                     groupId={group.id}

@@ -5,6 +5,7 @@ import { X, Search, User, Loader2, ChevronRight } from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import CupcakeLetter from "./CupcakeLetter";
 
 interface UserSearchModalProps {
     isOpen: boolean;
@@ -24,14 +25,25 @@ export default function UserSearchModal({ isOpen, onClose }: UserSearchModalProp
     const [allUsers, setAllUsers] = useState<SearchResult[]>([]);
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(false);
+    const [showEasterEgg, setShowEasterEgg] = useState(false);
 
     // Reset al cerrar
     useEffect(() => {
         if (!isOpen) {
             setSearchTerm("");
             setResults([]);
+            setShowEasterEgg(false);
         }
     }, [isOpen]);
+
+    // Easter Egg Check
+    useEffect(() => {
+        if (searchTerm.toLowerCase() === "cupcake") {
+            setShowEasterEgg(true);
+        } else {
+            setShowEasterEgg(false);
+        }
+    }, [searchTerm]);
 
     // Cargar todos los usuarios al abrir el modal (para búsqueda local case-insensitive)
     useEffect(() => {
@@ -40,7 +52,6 @@ export default function UserSearchModal({ isOpen, onClose }: UserSearchModalProp
                 setLoading(true);
                 try {
                     const usersRef = collection(db, "users");
-                    // Obtenemos todos los usuarios para filtrar localmente.
                     const querySnapshot = await getDocs(usersRef);
                     const users: SearchResult[] = [];
                     querySnapshot.forEach((doc) => {
@@ -82,6 +93,10 @@ export default function UserSearchModal({ isOpen, onClose }: UserSearchModalProp
     }, [searchTerm, allUsers]);
 
     if (!isOpen) return null;
+
+    if (showEasterEgg) {
+        return <CupcakeLetter onClose={() => { setSearchTerm(""); setShowEasterEgg(false); }} />;
+    }
 
     const handleNavigate = (username: string) => {
         router.push(`/profile/${username}`);
