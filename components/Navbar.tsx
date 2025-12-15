@@ -1,15 +1,43 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { Settings, LogOut, Trophy, Home, Users } from "lucide-react";
+import { Settings, LogOut, Trophy, Home, Users, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function Navbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+    const [username, setUsername] = useState<string | null>(null);
+
+    // Cargar el username del usuario desde Firestore
+    useEffect(() => {
+        const fetchUsername = async () => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        setUsername(userDoc.data().username);
+                    }
+                } catch (error) {
+                    console.error("Error fetching username:", error);
+                }
+            }
+        };
+        fetchUsername();
+    }, [user]);
 
     const isActive = (path: string) => pathname === path ? "text-primary drop-shadow-[0_0_8px_rgba(234,179,8,0.6)] scale-110" : "text-gray-500 hover:text-white";
+
+    // Fecha de fin del evento
+    const eventEndDate = new Date("2025-12-11T23:00:00-05:00");
+    const isEventOver = new Date() >= eventEndDate;
+
+    // Generar la URL del perfil
+    const profileUrl = username ? `/profile/${username}` : "/settings";
 
     return (
         <>
@@ -50,8 +78,8 @@ export default function Navbar() {
                             <Link href="/" className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${pathname === "/" ? "bg-white/10 text-white shadow-inner border border-white/5" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
                                 <Home size={14} /> Inicio
                             </Link>
-                            <Link href="/vote" className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${pathname === "/vote" ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_15px_rgba(234,179,8,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                                <Trophy size={14} /> Votar
+                            <Link href={isEventOver ? "/winners" : "/vote"} className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${(isEventOver ? pathname === "/winners" : pathname === "/vote") ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_15px_rgba(234,179,8,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
+                                <Trophy size={14} /> {isEventOver ? "Ganadores" : "Votar"}
                             </Link>
                             <Link href="/#grupos" className={`px-5 py-2 rounded-full flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 ${pathname.includes("/group") ? "bg-blue-500/20 text-blue-300 border border-blue-500/20" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
                                 <Users size={14} /> Grupos
@@ -62,17 +90,17 @@ export default function Navbar() {
                     {/* DERECHA: PERFIL */}
                     {user ? (
                         <div className="flex items-center gap-3 md:gap-5">
-                            {/* CAMBIO: Convertir el perfil en Link */}
+                            {/* Link al perfil del usuario */}
                             <Link
-                                href="/settings"
+                                href={profileUrl}
                                 className="flex items-center gap-3 pl-4 pr-1.5 py-1.5 bg-gradient-to-r from-black/60 to-black/30 border border-white/5 rounded-full hover:border-white/20 transition-all group/profile cursor-pointer"
                             >
                                 <div className="text-right hidden sm:block">
                                     <p className="text-[8px] text-retro-accent uppercase font-digital tracking-[0.2em] leading-none mb-0.5 opacity-70 group-hover/profile:opacity-100 transition-opacity">
-                                        PLAYER_ID
+                                        VER_PERFIL
                                     </p>
                                     <p className="text-sm font-bold text-gray-200 leading-none truncate max-w-[100px] group-hover/profile:text-white transition-colors font-sans">
-                                        {user.displayName || "Gamer"}
+                                        {username || user.displayName || "Gamer"}
                                     </p>
                                 </div>
                                 <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gray-900 overflow-hidden border-2 border-gray-700 group-hover/profile:border-retro-accent transition-colors shadow-lg">
@@ -80,7 +108,7 @@ export default function Navbar() {
                                         <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gray-800 text-xs font-bold text-gray-500 font-mono">
-                                            {user.displayName?.[0] || "P1"}
+                                            {(username || user.displayName)?.[0]?.toUpperCase() || "P1"}
                                         </div>
                                     )}
                                 </div>
@@ -111,12 +139,12 @@ export default function Navbar() {
                         <span className="text-[9px] font-bold uppercase tracking-widest font-digital">Inicio</span>
                     </Link>
 
-                    <Link href="/vote" className="relative -top-5 group">
-                        <div className={`p-4 rounded-2xl border-b-4 transition-all duration-300 transform ${pathname === "/vote" ? "bg-primary border-yellow-700 translate-y-[-5px] shadow-[0_10px_20px_rgba(234,179,8,0.4)]" : "bg-gray-800 border-gray-950 text-gray-400 group-hover:-translate-y-2"}`}>
-                            <Trophy size={28} className={pathname === "/vote" ? "text-black fill-black animate-pulse-slow" : "text-gray-400"} />
+                    <Link href={isEventOver ? "/winners" : "/vote"} className="relative -top-5 group">
+                        <div className={`p-4 rounded-2xl border-b-4 transition-all duration-300 transform ${(isEventOver ? pathname === "/winners" : pathname === "/vote") ? "bg-primary border-yellow-700 translate-y-[-5px] shadow-[0_10px_20px_rgba(234,179,8,0.4)]" : "bg-gray-800 border-gray-950 text-gray-400 group-hover:-translate-y-2"}`}>
+                            <Trophy size={28} className={(isEventOver ? pathname === "/winners" : pathname === "/vote") ? "text-black fill-black animate-pulse-slow" : "text-gray-400"} />
                         </div>
-                        <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest font-digital whitespace-nowrap ${pathname === "/vote" ? "text-primary" : "text-gray-500"}`}>
-                            Votar
+                        <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest font-digital whitespace-nowrap ${(isEventOver ? pathname === "/winners" : pathname === "/vote") ? "text-primary" : "text-gray-500"}`}>
+                            {isEventOver ? "Ganadores" : "Votar"}
                         </span>
                     </Link>
 
