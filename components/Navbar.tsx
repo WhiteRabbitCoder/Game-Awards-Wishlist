@@ -1,7 +1,8 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { Settings, LogOut, Trophy, Home, Users, User } from "lucide-react";
+import { Settings, LogOut, Trophy, Home, Users, User, Search } from "lucide-react";
+import UserSearchModal from "./UserSearchModal";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ export default function Navbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
     const [username, setUsername] = useState<string | null>(null);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     // Cargar el username del usuario desde Firestore
     useEffect(() => {
@@ -115,6 +117,9 @@ export default function Navbar() {
                             </Link>
 
                             <div className="flex items-center border-l border-white/10 pl-3 md:pl-5 gap-3 md:gap-4">
+                                <button onClick={() => setIsSearchOpen(true)} className="text-gray-500 hover:text-white transition-colors transform hover:scale-110 duration-200" title="Buscar Usuarios">
+                                    <Search size={20} />
+                                </button>
                                 <Link href="/settings" className="text-gray-500 hover:text-white transition-colors transform hover:rotate-45 duration-300">
                                     <Settings size={20} />
                                 </Link>
@@ -154,6 +159,8 @@ export default function Navbar() {
                     </Link>
                 </div>
             )}
+
+            <UserSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
         </>
     );
 }
