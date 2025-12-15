@@ -1,4 +1,5 @@
 import { db } from "@/lib/firebase";
+import GameGallery from "@/components/GameGallery";
 import { getGameDetails, normalizeGameName } from "@/lib/igdb";
 import { Category } from "@/types";
 import { collection, getDocs } from "firebase/firestore";
@@ -159,16 +160,7 @@ export default async function GameDetailPage(props: PageProps) {
 
                     {/* Screenshots Gallery */}
                     {gameData.screenshots.length > 0 && (
-                        <section>
-                            <h2 className="text-2xl font-bold mb-6">Galería</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {gameData.screenshots.slice(0, 4).map((shot, idx) => (
-                                    <div key={idx} className="aspect-video rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-500 shadow-lg border border-white/5">
-                                        <img src={shot} alt="Screenshot" className="w-full h-full object-cover" />
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+                        <GameGallery screenshots={gameData.screenshots} gameName={gameData.name} />
                     )}
                 </div>
 
