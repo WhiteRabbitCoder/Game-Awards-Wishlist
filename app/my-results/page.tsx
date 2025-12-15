@@ -222,8 +222,8 @@ export default function MyResultsPage() {
                             <div
                                 key={result.categoryId}
                                 className={`bg-surface border rounded-xl overflow-hidden transition-all ${isHit
-                                        ? "border-green-500/30 shadow-lg shadow-green-500/10"
-                                        : "border-white/10"
+                                    ? "border-green-500/30 shadow-lg shadow-green-500/10"
+                                    : "border-white/10"
                                     } ${isGOTY ? "ring-2 ring-yellow-500/30" : ""}`}
                             >
                                 {/* Header */}
@@ -258,21 +258,21 @@ export default function MyResultsPage() {
                                             <div className="text-xs text-yellow-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                                 <Trophy size={12} /> Ganador Oficial
                                             </div>
-                                            <div className="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                                            <Link href={`/game/${encodeURIComponent(result.winner?.name || '')}`} className="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 hover:bg-yellow-500/20 transition-all cursor-pointer group">
                                                 {result.winner?.image && (
                                                     <img
                                                         src={result.winner.image}
                                                         alt={result.winner.name}
-                                                        className="w-16 h-16 rounded-lg object-cover"
+                                                        className="w-16 h-16 rounded-lg object-cover group-hover:scale-105 transition-transform"
                                                     />
                                                 )}
                                                 <div>
-                                                    <p className="font-bold text-white">{result.winner?.name}</p>
+                                                    <p className="font-bold text-white group-hover:text-yellow-400 transition-colors">{result.winner?.name}</p>
                                                     {result.winner?.developer && (
                                                         <p className="text-sm text-gray-400">{result.winner.developer}</p>
                                                     )}
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </div>
 
                                         {/* Tus Predicciones */}
@@ -289,8 +289,8 @@ export default function MyResultsPage() {
                                                         <div
                                                             key={index}
                                                             className={`flex items-center gap-3 p-2 rounded-lg border ${isThisTheHit
-                                                                    ? "bg-green-500/10 border-green-500/30"
-                                                                    : "bg-deep/30 border-transparent"
+                                                                ? "bg-green-500/10 border-green-500/30"
+                                                                : "bg-deep/30 border-transparent"
                                                                 }`}
                                                         >
                                                             <div className={`w-6 h-6 flex items-center justify-center font-black text-sm ${medalColors[index]}`}>
@@ -299,9 +299,9 @@ export default function MyResultsPage() {
                                                             {vote?.image && (
                                                                 <img src={vote.image} alt={vote.name} className="w-8 h-8 rounded object-cover" />
                                                             )}
-                                                            <span className={`text-sm ${isThisTheHit ? "text-green-400 font-bold" : "text-gray-400"}`}>
+                                                            <Link href={vote?.name ? `/game/${encodeURIComponent(vote.name)}` : '#'} className={`text-sm ${isThisTheHit ? "text-green-400 font-bold" : "text-gray-400"} hover:underline truncate`}>
                                                                 {vote?.name || "Sin selección"}
-                                                            </span>
+                                                            </Link>
                                                             {isThisTheHit && <Medal size={16} className="text-green-400 ml-auto" />}
                                                         </div>
                                                     );

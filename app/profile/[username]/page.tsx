@@ -398,13 +398,13 @@ function OwnVoteCard({ comparison }: { comparison: CategoryComparison }) {
                             <div
                                 key={index}
                                 className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${isWinner
-                                        ? `${medal.bg} ${medal.border}`
-                                        : "bg-deep/30 border-transparent"
+                                    ? `${medal.bg} ${medal.border}`
+                                    : "bg-deep/30 border-transparent"
                                     }`}
                             >
                                 <div className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded ${isWinner
-                                        ? `${medal.bg} ${medal.text}`
-                                        : "bg-white/5 text-gray-500"
+                                    ? `${medal.bg} ${medal.text}`
+                                    : "bg-white/5 text-gray-500"
                                     }`}>
                                     {isWinner ? medal.emoji : index + 1}
                                 </div>
@@ -412,13 +412,13 @@ function OwnVoteCard({ comparison }: { comparison: CategoryComparison }) {
                                     {nominee?.image && <img src={nominee.image} alt={nominee.name} className="w-full h-full object-cover" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className={`text-xs truncate ${isWinner ? `${medal.text} font-bold` : "text-gray-400"}`}>
+                                    <Link href={nominee?.name ? `/game/${encodeURIComponent(nominee.name)}` : '#'} className={`text-xs truncate block hover:underline ${isWinner ? `${medal.text} font-bold` : "text-gray-400"}`}>
                                         {nominee?.name || "Sin selección"}
-                                    </p>
+                                    </Link>
                                 </div>
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isWinner
-                                        ? `${medal.bg} ${medal.text}`
-                                        : "bg-white/5 text-gray-500"
+                                    ? `${medal.bg} ${medal.text}`
+                                    : "bg-white/5 text-gray-500"
                                     }`}>
                                     {points} pts
                                 </span>
@@ -491,9 +491,9 @@ function UserVotesColumn({ username, votes, winnerId, isCurrentUser, isGOTY }: {
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className={`text-sm font-bold leading-tight truncate ${isWinner ? "text-white" : "text-gray-400"}`}>
+                                <Link href={nominee?.name ? `/game/${encodeURIComponent(nominee.name)}` : '#'} className={`text-sm font-bold leading-tight truncate block hover:underline ${isWinner ? "text-white" : "text-gray-400"}`}>
                                     {nominee?.name || "Sin selección"}
-                                </p>
+                                </Link>
                                 {isWinner && (
                                     <span className={`text-[10px] font-black uppercase tracking-wider ${getMedalColor(index)}`}>
                                         ¡Acertado - {getPoints(index)}!

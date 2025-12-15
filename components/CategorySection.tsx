@@ -1,5 +1,6 @@
 import { Category, Nominee } from "@/types";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Info } from "lucide-react";
+import Link from "next/link";
 
 interface Props {
     category: Category;
@@ -21,10 +22,10 @@ export default function CategorySection({ category, userVotes, onNomineeClick }:
 
     return (
         <div className={`relative bg-gradient-to-br from-surface to-deep rounded-2xl p-6 md:p-8 border transition-all duration-300 ${isGOTY
-                ? "border-yellow-500/50 shadow-2xl shadow-yellow-500/20"
-                : userVotes
-                    ? "border-green-500/30 shadow-lg shadow-green-500/10"
-                    : "border-white/10"
+            ? "border-yellow-500/50 shadow-2xl shadow-yellow-500/20"
+            : userVotes
+                ? "border-green-500/30 shadow-lg shadow-green-500/10"
+                : "border-white/10"
             }`}>
 
             {/* HEADER DE CATEGORÍA */}
@@ -78,18 +79,18 @@ function NomineeCard({ nominee, rank, onClick, isGOTY }: {
         <button
             onClick={onClick}
             className={`relative group text-left transition-all duration-500 w-full ${rank
-                    ? "scale-105 z-20"
-                    : "opacity-75 hover:opacity-100 hover:scale-105"
+                ? "scale-105 z-20"
+                : "opacity-75 hover:opacity-100 hover:scale-105"
                 }`}
         >
             {/* CONTENEDOR DE IMAGEN */}
             <div className={`aspect-[3/4] rounded-xl overflow-hidden mb-3 relative shadow-2xl transition-all duration-500 ${rank
-                    ? rank === 1
-                        ? "ring-4 ring-yellow-400 shadow-yellow-400/50"
-                        : rank === 2
-                            ? "ring-4 ring-gray-300 shadow-gray-300/50"
-                            : "ring-4 ring-orange-600 shadow-orange-600/50"
-                    : "ring-2 ring-white/10 hover:ring-white/30 group-hover:shadow-white/20"
+                ? rank === 1
+                    ? "ring-4 ring-yellow-400 shadow-yellow-400/50"
+                    : rank === 2
+                        ? "ring-4 ring-gray-300 shadow-gray-300/50"
+                        : "ring-4 ring-orange-600 shadow-orange-600/50"
+                : "ring-2 ring-white/10 hover:ring-white/30 group-hover:shadow-white/20"
                 }`}>
 
                 {nominee.image ? (
@@ -105,14 +106,24 @@ function NomineeCard({ nominee, rank, onClick, isGOTY }: {
                     </div>
                 )}
 
+                {/* BOTÓN DE INFO */}
+                <Link
+                    href={`/game/${encodeURIComponent(nominee.name)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-2 left-2 p-2 bg-black/40 hover:bg-black/80 backdrop-blur-sm rounded-full text-white/70 hover:text-white border border-white/10 transition-all z-30 hover:scale-110"
+                    title="Ver información del juego"
+                >
+                    <Info size={16} />
+                </Link>
+
                 {/* BADGE DE RANKING (ORO/PLATA/BRONCE) */}
                 {rank && (
                     <div className={`absolute top-3 right-3 w-12 h-12 rounded-full flex items-center justify-center font-black text-xl shadow-2xl border-4 transition-transform duration-300 group-hover:scale-110 ${rank === 1
-                            /* CAMBIO 2: Eliminado animate-pulse aquí */
-                            ? "bg-gradient-to-br from-yellow-300 to-yellow-600 text-black border-yellow-200 shadow-yellow-400/80"
-                            : rank === 2
-                                ? "bg-gradient-to-br from-gray-200 to-gray-400 text-black border-gray-100 shadow-gray-300/80"
-                                : "bg-gradient-to-br from-orange-500 to-orange-800 text-white border-orange-400 shadow-orange-500/80"
+                        /* CAMBIO 2: Eliminado animate-pulse aquí */
+                        ? "bg-gradient-to-br from-yellow-300 to-yellow-600 text-black border-yellow-200 shadow-yellow-400/80"
+                        : rank === 2
+                            ? "bg-gradient-to-br from-gray-200 to-gray-400 text-black border-gray-100 shadow-gray-300/80"
+                            : "bg-gradient-to-br from-orange-500 to-orange-800 text-white border-orange-400 shadow-orange-500/80"
                         }`}>
                         {rank}
                     </div>

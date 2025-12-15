@@ -211,15 +211,17 @@ export default function WinnersPage() {
                                 <h2 className={`font-black uppercase tracking-widest text-gray-500 mb-2 ${isGOTY ? "text-xl text-yellow-500" : "text-sm"}`}>
                                     {category.name}
                                 </h2>
-                                <h3 className={`font-black text-white ${isGOTY ? "text-5xl md:text-6xl" : "text-3xl md:text-4xl"}`}>
-                                    {winner.name}
-                                </h3>
+                                <Link href={`/game/${encodeURIComponent(winner.name)}`} className="hover:underline decoration-yellow-500 decoration-2 underline-offset-4 transition-all">
+                                    <h3 className={`font-black text-white ${isGOTY ? "text-5xl md:text-6xl" : "text-3xl md:text-4xl"}`}>
+                                        {winner.name}
+                                    </h3>
+                                </Link>
                                 {winner.developer && (
                                     <p className="text-gray-400 mt-2 text-lg">{winner.developer}</p>
                                 )}
                             </div>
 
-                            <div className="relative max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 group-hover:border-yellow-500/50 transition-colors duration-500">
+                            <Link href={`/game/${encodeURIComponent(winner.name)}`} className="block relative max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 group-hover:border-yellow-500/50 transition-colors duration-500 cursor-pointer">
                                 {/* Imagen de fondo con blur */}
                                 {winner.image && (
                                     <>
@@ -244,7 +246,7 @@ export default function WinnersPage() {
                                 <div className="absolute top-4 right-4 bg-yellow-500 text-black font-black px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 transform rotate-2 group-hover:rotate-0 transition-transform">
                                     <Trophy size={20} /> WINNER
                                 </div>
-                            </div>
+                            </Link>
                         </div>
                     );
                 })}
