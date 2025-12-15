@@ -35,8 +35,30 @@ export const metadata: Metadata = {
   title: "Wishlist Awards - Predice los ganadores",
   description: "Compite con tus amigos prediciendo los ganadores de los premios de videojuegos",
   icons: {
-    icon: '/favicon.png', // Apunta al archivo en la carpeta /public
-    apple: '/favicon.png', // Para dispositivos Apple
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
+  openGraph: {
+    title: 'Wishlist Awards - Predice los ganadores',
+    description: 'Compite con tus amigos prediciendo los ganadores de The Game Awards',
+    url: 'https://game-awards-wishlist.vercel.app',
+    siteName: 'Wishlist Awards',
+    images: [
+      {
+        url: 'https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png',
+        width: 512,
+        height: 512,
+        alt: 'Wishlist Awards Logo',
+      },
+    ],
+    locale: 'es_CO',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Wishlist Awards - Predice los ganadores',
+    description: 'Compite con tus amigos prediciendo los ganadores de The Game Awards',
+    images: ['https://i.postimg.cc/G2gBjfDn/Principal-Logo-Whislist-Awards.png'],
   },
 };
 
